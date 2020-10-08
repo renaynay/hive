@@ -2,11 +2,59 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"strings"
 
+	docker "github.com/fsouza/go-dockerclient"
+
 	"gopkg.in/inconshreveable/log15.v2"
 )
+
+func createNetworks(networkNames []string) ([]*docker.Network, error) {
+	// list networks to make sure not to duplicate
+	existing, err := dockerClient.ListNetworks()
+	if err != nil {
+		return nil, err
+	}
+	// range over existing networks and if one of their names matches a specified network name,
+	// remove it
+	for _, exists := range existing {
+		for _, name := range networkNames {
+			if exists.Name == name {
+				if err := dockerClient.RemoveNetwork(exists.ID); err != nil {
+					return nil, err
+				}
+			}
+		}
+	}
+	// create networks
+	networks := make([]*docker.Network, 0)
+	for _, name := range networkNames {
+		network, err := dockerClient.CreateNetwork(docker.CreateNetworkOptions{
+			Name:           name,
+			CheckDuplicate: true, // TODO set this to tru?
+			Attachable:     true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		networks = append(networks, network)
+	}
+	// if no networks were created, abort
+	if len(networks) == 0 {
+		return nil, fmt.Errorf("no networks created")
+	}
+	return networks, nil
+}
+
+func connectContainer(network, container string) error {
+	return dockerClient.ConnectNetwork(network, docker.NetworkConnectionOptions{
+		Container:      container,
+		EndpointConfig: nil, // TODO ?
+	})
+}
 
 // lookupBridgeIP attempts to locate the IPv4 address of the local docker0 bridge
 // network adapter.

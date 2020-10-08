@@ -27,7 +27,7 @@ var (
 )
 
 // runSimulations runs each 'simulation' container, which are hosts for executing one or more test-suites
-func runSimulations(simulatorPattern string, overrides []string, cacher *buildCacher) error {
+func runSimulations(simulatorPattern string, overrides []string, cacher *buildCacher, networkConfig common.NetworkConfig) error {
 
 	// Clean up
 	defer terminateAndUpdate()
@@ -40,7 +40,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	// Create a testcase manager
-	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler)
+	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, networkConfig)
 
 	// Start the simulator HTTP API
 	err = startTestSuiteAPI()
@@ -61,7 +61,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 		// and have the execution details including duration, hive logs, and sim logs displayed.
 		// logdir will be the execution folder. ie executiondir.
 		logdir := *testResultsRoot
-		err = simulate(*simLimiterFlag, simulatorImage, simulator, overrides, logger, logdir)
+		err = simulate(*simLimiterFlag, simulatorImage, simulator, logger, logdir)
 		if err != nil {
 			return err
 		}
@@ -73,7 +73,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 // simulate runs a simulator container, which is a host for one or more testsuite
 // runners. These communicate with this hive testsuite provider and host via
 // a client API to run testsuites and their testcases.
-func simulate(simDuration int, simulator string, simulatorLabel string, overrides []string, logger log15.Logger, logdir string) error {
+func simulate(simDuration int, simulator string, simulatorLabel string, logger log15.Logger, logdir string) error {
 	logger.Info(fmt.Sprintf("running client simulation: %s", simulatorLabel))
 
 	// The simulator creates the testŕesult files, aswell as updates the index file. However, it needs to also
@@ -277,6 +277,7 @@ func nodeStart(w http.ResponseWriter, request *http.Request) {
 		log15.Error("nodeStart failed", "error", err)
 		return
 	}
+
 	testCase, ok := checkTestRequest(request, w)
 	if !ok {
 		return

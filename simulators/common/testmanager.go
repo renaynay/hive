@@ -3,6 +3,8 @@ package common
 import (
 	"sync"
 	"time"
+
+	docker "github.com/fsouza/go-dockerclient"
 )
 
 // TestManager offers providers a common implementation for
@@ -11,6 +13,7 @@ import (
 type TestManager struct {
 	OutputPath       string
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
+	NetworkConfig    NetworkConfig
 
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
@@ -24,14 +27,14 @@ type TestManager struct {
 }
 
 // NewTestManager is a constructor returning a TestManager
-func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error) *TestManager {
-
+func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig) *TestManager {
 	return &TestManager{
 		OutputPath:        outputPath,
 		testLimiter:       testLimiter,
 		KillNodeCallback:  killNodeCallback,
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
+		NetworkConfig:     networkConfig,
 	}
 }
 
@@ -255,3 +258,5 @@ func (manager *TestManager) RegisterPseudo(testID TestID, nodeID string, nodeInf
 	testCase.pseudoInfo[nodeID] = nodeInfo
 	return nil
 }
+
+type NetworkConfig []*docker.Network

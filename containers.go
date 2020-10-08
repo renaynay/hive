@@ -49,8 +49,8 @@ func createShellContainer(image string, overrides []string) (*docker.Container, 
 		}
 	}
 	binds = append(binds, []string{
-		fmt.Sprintf("%s/workspace/docker:/var/lib/docker", pwd),                                       // Surface any docker-in-docker data caches
-		fmt.Sprintf("%s/workspace/logs:/gopath/src/github.com/ethereum/hive/workspace/logs", pwd),     // Surface all the log files from the shell
+		fmt.Sprintf("%s/workspace/docker:/var/lib/docker", pwd),                                   // Surface any docker-in-docker data caches
+		fmt.Sprintf("%s/workspace/logs:/gopath/src/github.com/ethereum/hive/workspace/logs", pwd), // Surface all the log files from the shell
 	}...)
 
 	uid := os.Getuid()
@@ -203,6 +203,16 @@ func runContainer(id string, logger log15.Logger, logfile string, shell bool, lo
 		logger.Error("failed to attach to container", "error", err)
 		return nil, err
 	}
+
+	// connect container to networks defined in network config
+	for _, network := range testManager.NetworkConfig {
+		if err := connectContainer(network.ID, id); err != nil {
+			log15.Crit("could not connect container to network", "network name", network.Name, "err", err)
+			return nil, err
+		}
+		logger.Debug("connected container to network successfully", "container", id, "network", network.Name)
+	}
+
 	// Start the requested container and wait until it terminates
 	logger.Debug("starting container")
 
