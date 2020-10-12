@@ -136,7 +136,16 @@ func main() {
 		fail = mainInShell(overrides, cacher) // TODO add networks to this? why shell necessary?
 	}
 	if fail != nil {
+		errs := killNetworks(networks)
+		if len(errs) > 0 {
+			log15.Crit("could not kill networks", "errs", errs) // todo change log errs
+		}
 		os.Exit(-1)
+	}
+
+	errs := killNetworks(networks)
+	if len(errs) > 0 {
+		log15.Crit("could not kill networks", "errs", errs) // todo change log errs
 	}
 }
 

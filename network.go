@@ -90,3 +90,13 @@ func lookupBridgeIP(logger log15.Logger) (net.IP, error) {
 	// Crap, no IPv4 found, bounce
 	return nil, errors.New("not found")
 }
+
+func killNetworks(networks []*docker.Network) []error {
+	var errs []error
+	for _, network := range networks {
+		if err := dockerClient.RemoveNetwork(network.ID); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
+}
