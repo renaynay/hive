@@ -26,6 +26,9 @@ type TestManager struct {
 	testCaseCounter   uint32
 }
 
+// TODO document
+type NetworkConfig []*docker.Network
+
 // NewTestManager is a constructor returning a TestManager
 func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig) *TestManager {
 	return &TestManager{
@@ -258,5 +261,3 @@ func (manager *TestManager) RegisterPseudo(testID TestID, nodeID string, nodeInf
 	testCase.pseudoInfo[nodeID] = nodeInfo
 	return nil
 }
-
-type NetworkConfig []*docker.Network

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/ethereum/hive/simulators/common"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/ethereum/hive/simulators/common"
 )
 
 // HostConfiguration describes the json configuration for
@@ -148,12 +149,6 @@ func (sim *host) GetClientTypes() (availableClients []string, err error) {
 //The input is used as environment variables in the new container
 //Returns container id and ip
 func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error) {
-	// vals := make(url.Values)
-	// for k, v := range parameters {
-	// 	vals.Add(k, v)
-	// }
-	//vals.Add("testcase", test.String())
-	//	parameters["testcase"] = test.String()
 	data, err := postWithFiles(fmt.Sprintf("%s/testsuite/%s/test/%s/node", sim.configuration.HostURI, testSuite.String(), test.String()), parameters, initFiles)
 	if err != nil {
 		return "", nil, nil, err
