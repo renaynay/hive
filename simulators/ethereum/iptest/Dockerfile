@@ -3,7 +3,7 @@ RUN apk add --no-cache git make gcc musl-dev linux-headers bash  curl jq
 RUN GOPATH=/go
 
 # Add the local test files
-ADD /ethereum/graphql/graphql.go /go/src/github.com/ethereum/hive/simulators/ethereum/iptest/iptest.go
+ADD /ethereum/iptest/iptest.go /go/src/github.com/ethereum/hive/simulators/ethereum/iptest/iptest.go
 ADD common /go/src/github.com/ethereum/hive/simulators/common
 
 RUN (cd /go/src/github.com/ethereum/hive/simulators/ && go mod init)

@@ -28,7 +28,7 @@ func main() {
 
 		defer func() {
 			if err := host.EndTestSuite(suiteID); err != nil {
-				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()), err.Error())
+				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
 				os.Exit(1)
 			}
 		}()
