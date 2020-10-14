@@ -11,7 +11,10 @@ import (
 func main() {
 	host := hive.New()
 
-	availableClients, _ := host.GetClientTypes()
+	availableClients, err := host.GetClientTypes()
+	if err != nil {
+		log.Error("could not get client types: ", err.Error())
+	}
 	log.Info("Got clients", "clients", availableClients)
 
 	logFile, _ := os.LookupEnv("HIVE_SIMLOG")
