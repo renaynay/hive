@@ -27,7 +27,7 @@ type TestManager struct {
 }
 
 // TODO document
-type NetworkConfig []*docker.Network
+type NetworkConfig []*docker.Network // TODO this could probs be moved along w/ network creationn process to `runSimulation()`
 
 // NewTestManager is a constructor returning a TestManager
 func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig) *TestManager {
