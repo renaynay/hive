@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -44,7 +45,29 @@ func main() {
 		}
 		files := map[string]string{}
 
-		_, ip, _, err := host.GetNode(suiteID, testID, env, files)
-		log.Info("IP ADDR", ip.String())
+		containerID, ip, _, err := host.GetNode(suiteID, testID, env, files)
+		if err != nil {
+			log.Error("could not get node", "err", err.Error())
+			os.Exit(1)
+		}
+
+		res, err := host.GetClientNetworkIP(suiteID, testID, containerID)
+		if err != nil {
+			log.Error("could not get client network ip addresses", "err", err.Error())
+			os.Exit(1)
+		}
+
+		var ipAddrs map[string]string
+		if err := json.Unmarshal(res, &ipAddrs); err != nil {
+			log.Error("could not unmarshal ip addresses", "err", err.Error())
+			os.Exit(1)
+		}
+
+		log.Info("got bridge IP: ", "ip", ip)
+
+		for networkName, addr := range ipAddrs {
+			log.Info("got network IP: ", "network", networkName, "ip", addr)
+		}
+
 	}
 }

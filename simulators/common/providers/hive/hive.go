@@ -45,6 +45,18 @@ func New() common.TestSuiteHost {
 	}
 }
 
+// TODO document
+func (sim *host) GetClientNetworkIP(testSuite common.TestSuiteID, test common.TestID, node string) ([]byte, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/test/%s/node/%s", sim.configuration.HostURI, testSuite.String(), test.String(), node))
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
 //GetClientEnode Get the client enode for the specified node id
 func (sim *host) GetClientEnode(testSuite common.TestSuiteID, test common.TestID, node string) (*string, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/test/%s/node/%s", sim.configuration.HostURI, testSuite.String(), test.String(), node))

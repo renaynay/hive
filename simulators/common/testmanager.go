@@ -15,6 +15,8 @@ type TestManager struct {
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
 	NetworkConfig    NetworkConfig
 
+	DockerClient docker.Client // TODO is this ok?
+
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
 	runningTestCases  map[TestID]*TestCase
@@ -107,6 +109,58 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 		}
 	}
 	return nodeInfo, nil
+}
+
+// TODO document
+func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, test TestID, nodeID string) (*TestClientNetworkDetails, error) {
+	manager.nodeMutex.Lock()
+	defer manager.nodeMutex.Unlock()
+
+	// TODO is this necessary?
+	_, ok := manager.IsTestSuiteRunning(testSuite)
+	if !ok {
+		return nil, ErrNoSuchTestSuite
+	}
+	_, ok = manager.IsTestRunning(test)
+	if !ok {
+		return nil, ErrNoSuchTestCase
+	}
+
+	ipAddrs, err := getContainerIPs(manager.DockerClient, manager.NetworkConfig, nodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &TestClientNetworkDetails{IPAddrs: ipAddrs}, nil
+}
+
+// TODO returns map[networkName]IPAddr
+func getContainerIPs(dockerClient docker.Client, networkNames []*docker.Network, container string) (map[string]string, error) {
+	details, err := dockerClient.InspectContainerWithOptions(docker.InspectContainerOptions{
+		ID: container,
+	})
+	if err != nil {
+		return nil, err
+	}
+	ipAddrs := make(map[string]string, len(networkNames))
+	// range over all networks to which the container is connected
+	// and get network-specific IPs
+	for _, network := range details.NetworkSettings.Networks {
+		for _, alias := range network.Aliases {
+			for _, name := range networkNames {
+				if alias == name.Name {
+					ipAddrs[name.Name] = network.IPAddress
+				}
+			}
+		}
+	}
+	// check to make sure all networks are found
+	for _, name := range networkNames {
+		if _, exists := ipAddrs[name.Name]; !exists {
+			return nil, err
+		}
+	}
+	return ipAddrs, nil
 }
 
 // EndTestSuite ends the test suite by writing the test suite results to the supplied

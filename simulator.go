@@ -171,6 +171,7 @@ func startTestSuiteAPI() error {
 
 	var mux *pat.Router = pat.New()
 	mux.Get("/testsuite/{suite}/test/{test}/node/{node}", nodeInfoGet)
+	mux.Get("/testsuite/{suite}/test/{test}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/test/{test}/node", nodeStart)
 	mux.Post("/testsuite/{suite}/test/{test}/pseudo", pseudoStart)
 	mux.Delete("/testsuite/{suite}/test/{test}/node/{node}", nodeKill)
@@ -269,6 +270,40 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+// TODO document
+func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("nodeInfoGet failed", "error", err)
+		return
+	}
+	testCase, ok := checkTestRequest(request, w)
+	if !ok {
+		log15.Info("Server - node info get, test request failed")
+		return
+	}
+
+	node := request.URL.Query().Get(":node")
+	log15.Info("Server - node info get")
+
+	ipAddrs, err := testManager.GetNodeNetworkIPs(common.TestSuiteID(testSuite), common.TestID(testCase), node)
+	if err != nil {
+		log15.Error("nodeNetworkIPGet unable to get networkIPs", "node", node, "error", err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	data, err := json.Marshal(ipAddrs)
+	if err != nil {
+		log15.Error("unable to marshal IPs", "node", node, "error", err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	fmt.Fprint(w, data)
+	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddrs)
 }
 
 //start a new node as part of a test

@@ -32,6 +32,8 @@ type TestSuiteHost interface {
 	//initFiles is a dictionary of initialising files (eg: chain.rlp, blocks, genesis etc).
 	//Returns container id, ip and mac
 	GetNode(testSuite TestSuiteID, test TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error)
+	// TODO DOCUMENT
+	GetClientNetworkIP(testSuite TestSuiteID, test TestID, node string) ([]byte, error)
 	//GetPseudo gets a new (or pre-supplied) pseudo-client with the specified parameters
 	//One parameter must be named CLIENT
 	//The input is used as environment variables in the new container

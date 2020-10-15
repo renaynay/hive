@@ -177,3 +177,8 @@ type TestClientInfo struct {
 	LogFile         string    `json:"logFile"` //Absolute path to the logfile.
 	WasInstantiated bool
 }
+
+// TODO document
+type TestClientNetworkDetails struct {
+	IPAddrs map[string]string `json:"ipaddrs"`
+}
