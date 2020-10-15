@@ -47,7 +47,7 @@ func New() common.TestSuiteHost {
 
 // TODO document
 func (sim *host) GetClientNetworkIP(testSuite common.TestSuiteID, test common.TestID, node string) ([]byte, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/node/%s", sim.configuration.HostURI, testSuite.String(), test.String(), node))
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/node/%s", sim.configuration.HostURI, testSuite.String(), node))
 	if err != nil {
 		return nil, err
 	}

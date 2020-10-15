@@ -281,7 +281,7 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 	}
 
 	node := request.URL.Query().Get(":node")
-	log15.Info("Server - node info get")
+	log15.Info("Server - node network IP get")
 
 	ipAddrs, err := testManager.GetNodeNetworkIPs(common.TestSuiteID(testSuite), node)
 	if err != nil {
