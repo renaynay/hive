@@ -279,16 +279,11 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 		log15.Error("nodeInfoGet failed", "error", err)
 		return
 	}
-	testCase, ok := checkTestRequest(request, w)
-	if !ok {
-		log15.Info("Server - node info get, test request failed")
-		return
-	}
 
 	node := request.URL.Query().Get(":node")
 	log15.Info("Server - node info get")
 
-	ipAddrs, err := testManager.GetNodeNetworkIPs(common.TestSuiteID(testSuite), common.TestID(testCase), node)
+	ipAddrs, err := testManager.GetNodeNetworkIPs(common.TestSuiteID(testSuite), node)
 	if err != nil {
 		log15.Error("nodeNetworkIPGet unable to get networkIPs", "node", node, "error", err)
 		http.Error(w, err.Error(), http.StatusNotFound)

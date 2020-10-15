@@ -112,7 +112,7 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 }
 
 // TODO document
-func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, test TestID, nodeID string) (*TestClientNetworkDetails, error) {
+func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, nodeID string) (*TestClientNetworkDetails, error) {
 	manager.nodeMutex.Lock()
 	defer manager.nodeMutex.Unlock()
 
@@ -120,10 +120,6 @@ func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, test TestID
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return nil, ErrNoSuchTestSuite
-	}
-	_, ok = manager.IsTestRunning(test)
-	if !ok {
-		return nil, ErrNoSuchTestCase
 	}
 
 	ipAddrs, err := getContainerIPs(manager.DockerClient, manager.NetworkConfig, nodeID)
