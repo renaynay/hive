@@ -1,6 +1,7 @@
 package common
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -154,7 +155,7 @@ func getContainerIPs(dockerClient *docker.Client, networkNames []*docker.Network
 	// check to make sure all networks are found
 	for _, name := range networkNames {
 		if _, exists := ipAddrs[name.Name]; !exists {
-			return nil, err
+			return nil, fmt.Errorf("networks not found")
 		}
 	}
 	return ipAddrs, nil

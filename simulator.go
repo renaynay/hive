@@ -290,6 +290,8 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddrs)
+
 	data, err := json.Marshal(ipAddrs)
 	if err != nil {
 		log15.Error("unable to marshal IPs", "node", node, "error", err)
@@ -298,7 +300,6 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 	}
 
 	fmt.Fprint(w, data)
-	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddrs)
 }
 
 //start a new node as part of a test
