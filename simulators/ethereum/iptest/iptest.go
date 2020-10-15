@@ -52,7 +52,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		var ipAddrs map[string]string
+		var ipAddrs common.TestClientNetworkDetails
 		if err := json.Unmarshal(res, &ipAddrs); err != nil {
 			log.Error("could not unmarshal ip addresses", "err", err.Error())
 			os.Exit(1)
@@ -60,7 +60,7 @@ func main() {
 
 		log.Info("got bridge IP: ", "ip", ip)
 
-		for networkName, addr := range ipAddrs {
+		for networkName, addr := range ipAddrs.IPAddrs {
 			log.Info("got network IP: ", "network", networkName, "ip", addr)
 		}
 
