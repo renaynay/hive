@@ -27,13 +27,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		defer func() {
-			if err := host.EndTestSuite(suiteID); err != nil {
-				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
-				os.Exit(1)
-			}
-		}()
-
 		testID, err := host.StartTest(suiteID, "iptest", "iptest")
 		if err != nil {
 			log.Error("unable to start test: ", err.Error())
@@ -50,6 +43,18 @@ func main() {
 			log.Error("could not get node", "err", err.Error())
 			os.Exit(1)
 		}
+
+		defer func() {
+			if err := host.KillNode(suiteID, testID, containerID); err != nil {
+				log.Error(fmt.Sprintf("Unable to kill node: %s", err.Error()))
+				os.Exit(1)
+			}
+
+			if err := host.EndTestSuite(suiteID); err != nil {
+				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
+				os.Exit(1)
+			}
+		}()
 
 		res, err := host.GetClientNetworkIP(suiteID, testID, containerID)
 		if err != nil {
