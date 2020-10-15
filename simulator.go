@@ -171,13 +171,13 @@ func startTestSuiteAPI() error {
 
 	var mux *pat.Router = pat.New()
 	mux.Get("/testsuite/{suite}/test/{test}/node/{node}", nodeInfoGet)
-	mux.Get("/testsuite/{suite}/test/{test}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/test/{test}/node", nodeStart)
 	mux.Post("/testsuite/{suite}/test/{test}/pseudo", pseudoStart)
 	mux.Delete("/testsuite/{suite}/test/{test}/node/{node}", nodeKill)
 	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
+	mux.Get("/testsuite/{suite}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
