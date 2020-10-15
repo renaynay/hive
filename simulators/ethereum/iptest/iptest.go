@@ -64,20 +64,8 @@ func main() {
 			log.Info("got network IP: ", "network", networkName, "ip", addr)
 		}
 
-		if err := host.KillNode(suiteID, testID, containerID); err != nil {
-			log.Error(fmt.Sprintf("Unable to kill node: %s", err.Error()))
-			os.Exit(1)
-		}
-
-		if err := host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", ipAddrs)}, nil); err != nil {
-			log.Error(fmt.Sprintf("Unable to end test: %s", err.Error()))
-			os.Exit(1)
-		}
-
-		if err := host.EndTestSuite(suiteID); err != nil {
-			log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
-			os.Exit(1)
-		}
-
+		host.KillNode(suiteID, testID, containerID)
+		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", ipAddrs)}, nil)
+		host.EndTestSuite(suiteID)
 	}
 }
