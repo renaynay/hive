@@ -15,7 +15,7 @@ type TestManager struct {
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
 	NetworkConfig    NetworkConfig
 
-	DockerClient docker.Client // TODO is this ok?
+	DockerClient *docker.Client // TODO is this ok?
 
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
@@ -32,7 +32,7 @@ type TestManager struct {
 type NetworkConfig []*docker.Network // TODO this could probs be moved along w/ network creationn process to `runSimulation()`
 
 // NewTestManager is a constructor returning a TestManager
-func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig) *TestManager {
+func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig, client *docker.Client) *TestManager {
 	return &TestManager{
 		OutputPath:        outputPath,
 		testLimiter:       testLimiter,
@@ -40,6 +40,7 @@ func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(te
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
 		NetworkConfig:     networkConfig,
+		DockerClient:      client,
 	}
 }
 
@@ -131,7 +132,7 @@ func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, nodeID stri
 }
 
 // TODO returns map[networkName]IPAddr
-func getContainerIPs(dockerClient docker.Client, networkNames []*docker.Network, container string) (map[string]string, error) {
+func getContainerIPs(dockerClient *docker.Client, networkNames []*docker.Network, container string) (map[string]string, error) {
 	details, err := dockerClient.InspectContainerWithOptions(docker.InspectContainerOptions{
 		ID: container,
 	})
