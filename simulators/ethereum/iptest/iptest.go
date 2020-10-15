@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ethereum/hive/simulators/common"
+
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/hive/simulators/common/providers/hive"
 )
@@ -44,18 +46,6 @@ func main() {
 			os.Exit(1)
 		}
 
-		defer func() {
-			if err := host.KillNode(suiteID, testID, containerID); err != nil {
-				log.Error(fmt.Sprintf("Unable to kill node: %s", err.Error()))
-				os.Exit(1)
-			}
-
-			if err := host.EndTestSuite(suiteID); err != nil {
-				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
-				os.Exit(1)
-			}
-		}()
-
 		res, err := host.GetClientNetworkIP(suiteID, testID, containerID)
 		if err != nil {
 			log.Error("could not get client network ip addresses", "err", err.Error())
@@ -73,6 +63,23 @@ func main() {
 		for networkName, addr := range ipAddrs {
 			log.Info("got network IP: ", "network", networkName, "ip", addr)
 		}
+
+		defer func() {
+			if err := host.KillNode(suiteID, testID, containerID); err != nil {
+				log.Error(fmt.Sprintf("Unable to kill node: %s", err.Error()))
+				os.Exit(1)
+			}
+
+			if err := host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", ipAddrs)}, nil); err != nil {
+				log.Error(fmt.Sprintf("Unable to end test: %s", err.Error()))
+				os.Exit(1)
+			}
+
+			if err := host.EndTestSuite(suiteID); err != nil {
+				log.Error(fmt.Sprintf("Unable to end test suite: %s", err.Error()))
+				os.Exit(1)
+			}
+		}()
 
 	}
 }
