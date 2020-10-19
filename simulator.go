@@ -291,7 +291,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
 		return
 	}
-	log15.Debug("network created", "network", id)
+	log15.Debug("network created", "network id", id, "network name", networkName)
 
 	fmt.Fprint(w, []byte(id)) // TODO ??
 }
