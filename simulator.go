@@ -285,15 +285,15 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 	networkName := request.URL.Query().Get(":network")
 	log15.Info("Server - network create")
 
-	if err := testManager.CreateNetwork(testSuite, networkName); err != nil {
+	id, err := testManager.CreateNetwork(testSuite, networkName)
+	if err != nil {
 		log15.Error("networkCreate unable to create network", "network", networkName, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
 		return
 	}
-
 	log15.Debug("network created", "network", networkName)
 
-	fmt.Fprint(w, []byte("success")) // TODO ??
+	fmt.Fprint(w, []byte(id)) // TODO ??
 }
 
 // TODO document
