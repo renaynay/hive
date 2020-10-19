@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -46,26 +45,29 @@ func main() {
 			os.Exit(1)
 		}
 
-		res, err := host.GetClientNetworkIP(suiteID, testID, containerID)
+		networkID, err := host.CreateNetwork(suiteID, "network1")
+		if err != nil {
+			log.Error("could not create network", "err", err.Error())
+			os.Exit(1)
+		}
+		// TODO how to connect own sim container to this network
+
+		if err := host.ConnectContainerToNetwork(suiteID, networkID, containerID); err != nil {
+			log.Error("could not connect container to network", "err", err.Error())
+			os.Exit(1)
+		}
+
+		res, err := host.GetClientNetworkIP(suiteID, "network1", containerID)
 		if err != nil {
 			log.Error("could not get client network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
 
-		var ipAddrs common.TestClientNetworkDetails
-		if err := json.Unmarshal(res, &ipAddrs); err != nil {
-			log.Error("could not unmarshal ip addresses", "err", err.Error())
-			os.Exit(1)
-		}
-
 		log.Info("got bridge IP: ", "ip", ip)
-
-		for networkName, addr := range ipAddrs.IPAddrs {
-			log.Info("got network IP: ", "network", networkName, "ip", addr)
-		}
+		log.Info("got network1 ip", res)
 
 		host.KillNode(suiteID, testID, containerID)
-		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", ipAddrs)}, nil)
+		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", res)}, nil)
 		host.EndTestSuite(suiteID)
 	}
 }

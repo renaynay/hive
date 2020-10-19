@@ -33,7 +33,11 @@ type TestSuiteHost interface {
 	//Returns container id, ip and mac
 	GetNode(testSuite TestSuiteID, test TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error)
 	// TODO DOCUMENT
-	GetClientNetworkIP(testSuite TestSuiteID, test TestID, node string) ([]byte, error)
+	GetClientNetworkIP(testSuite TestSuiteID, networkID, node string) (string, error)
+	// TODO document
+	ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error
+	// TODO document
+	CreateNetwork(testSuite TestSuiteID, networkName string) (string, error)
 	//GetPseudo gets a new (or pre-supplied) pseudo-client with the specified parameters
 	//One parameter must be named CLIENT
 	//The input is used as environment variables in the new container

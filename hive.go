@@ -61,8 +61,6 @@ var (
 	chainBlockTime  = flag.Uint("chainBlockTime", 30, "The desired block time in seconds")
 
 	loglevelFlag = flag.Int("loglevel", 3, "Log level to use for displaying system events")
-
-	networkNames = flag.String("network", "network1", "Specify the name(s) of docker networks to create in a comma-separated list as such: 'network1','network2'")
 )
 
 var (
@@ -115,44 +113,34 @@ func main() {
 		log15.Crit("failed to parse nocache regexp", "error", err)
 		return
 	}
-	// parse network names
-	networkNames := strings.Split(*networkNames, ",")
-	log15.Info("networks defined: ", networkNames) // TODO REMOVE
 	//set up clients and get their versions
 	initClients(cacher)
 
-	// Create all specified networks
-	var networks []*docker.Network
-	networks, err = createNetworks(networkNames)
-	if err != nil {
-		log15.Crit("failed to create network(s)", "error", err)
-		return
-	}
 	// Depending on the flags, either run hive in place or in an outer container shell
 	var fail error
 	if *noShellContainer {
-		fail = mainInHost(overrides, cacher, networks)
+		fail = mainInHost(overrides, cacher)
 	} else {
 		fail = mainInShell(overrides, cacher) // TODO add networks to this? why shell necessary?
 	}
 	if fail != nil {
-		errs := killNetworks(networks)
-		if len(errs) > 0 {
-			log15.Crit("could not kill networks", "errs", errs) // todo change log errs
-		}
+		//errs := killNetworks()
+		//if len(errs) > 0 {
+		//	log15.Crit("could not kill networks", "errs", errs) // todo change log errs
+		//}
 		os.Exit(-1)
 	}
 
-	errs := killNetworks(networks)
-	if len(errs) > 0 {
-		log15.Crit("could not kill networks", "errs", errs) // todo change log errs
-	}
+	//errs := killNetworks()
+	//if len(errs) > 0 {
+	//	log15.Crit("could not kill networks", "errs", errs) // todo change log errs
+	//}
 }
 
 // mainInHost runs the actual hive testsuites on the
 // host machine itself. This is usually the path executed within an outer shell
 // container, but can be also requested directly.
-func mainInHost(overrides []string, cacher *buildCacher, networks []*docker.Network) error {
+func mainInHost(overrides []string, cacher *buildCacher) error {
 	var err error
 
 	// create or use the specified rootpath
@@ -164,7 +152,7 @@ func mainInHost(overrides []string, cacher *buildCacher, networks []*docker.Netw
 	// Run all testsuites
 	if *simulatorPattern != "" {
 		//execute testsuites
-		if err = runSimulations(*simulatorPattern, overrides, cacher, networks); err != nil {
+		if err = runSimulations(*simulatorPattern, overrides, cacher); err != nil {
 			log15.Crit("failed to run simulations", "error", err)
 			return err
 		}

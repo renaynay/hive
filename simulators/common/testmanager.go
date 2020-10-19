@@ -14,7 +14,6 @@ import (
 type TestManager struct {
 	OutputPath       string
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
-	NetworkConfig    NetworkConfig
 
 	DockerClient *docker.Client // TODO is this ok?
 
@@ -29,18 +28,14 @@ type TestManager struct {
 	testCaseCounter   uint32
 }
 
-// TODO document
-type NetworkConfig []*docker.Network // TODO this could probs be moved along w/ network creationn process to `runSimulation()`
-
 // NewTestManager is a constructor returning a TestManager
-func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, networkConfig NetworkConfig, client *docker.Client) *TestManager {
+func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, client *docker.Client) *TestManager {
 	return &TestManager{
 		OutputPath:        outputPath,
 		testLimiter:       testLimiter,
 		KillNodeCallback:  killNodeCallback,
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
-		NetworkConfig:     networkConfig,
 		DockerClient:      client,
 	}
 }
@@ -113,50 +108,83 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 	return nodeInfo, nil
 }
 
+//TODO document
+func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) error {
+	// TODO is this necessary?
+	_, ok := manager.IsTestSuiteRunning(testSuite)
+	if !ok {
+		return ErrNoSuchTestSuite
+	}
+	// list networks to make sure not to duplicate
+	existing, err := manager.DockerClient.ListNetworks()
+	if err != nil {
+		return err
+	}
+	// check for existing networks with same name, and if exists, remove
+	for _, exists := range existing {
+		if exists.Name == networkName {
+			if err := manager.DockerClient.RemoveNetwork(exists.ID); err != nil {
+				return err
+			}
+		}
+	}
+	// create network
+	_, err = manager.DockerClient.CreateNetwork(docker.CreateNetworkOptions{
+		Name:           networkName,
+		CheckDuplicate: true, // TODO set this to tru?
+		Attachable:     true,
+	})
+	return err
+}
+
 // TODO document
-func (manager *TestManager) GetNodeNetworkIPs(testSuite TestSuiteID, nodeID string) (*TestClientNetworkDetails, error) {
+func (manager *TestManager) ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error {
+	// TODO is this necessary?
+	_, ok := manager.IsTestSuiteRunning(testSuite)
+	if !ok {
+		return ErrNoSuchTestSuite
+	}
+	return manager.DockerClient.ConnectNetwork(networkName, docker.NetworkConnectionOptions{
+		Container:      containerName,
+		EndpointConfig: nil, // TODO ?
+	})
+}
+
+// TODO document
+func (manager *TestManager) GetNodeNetworkIP(testSuite TestSuiteID, networkID, nodeID string) (string, error) {
 	manager.nodeMutex.Lock()
 	defer manager.nodeMutex.Unlock()
 
 	// TODO is this necessary?
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
-		return nil, ErrNoSuchTestSuite
+		return "", ErrNoSuchTestSuite
 	}
 
-	ipAddrs, err := getContainerIPs(manager.DockerClient, manager.NetworkConfig, nodeID)
+	ipAddr, err := getContainerIP(manager.DockerClient, networkID, nodeID)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return &TestClientNetworkDetails{IPAddrs: ipAddrs}, nil
+	return ipAddr, nil
 }
 
 // TODO returns map[networkName]IPAddr
-func getContainerIPs(dockerClient *docker.Client, networkNames []*docker.Network, container string) (map[string]string, error) {
+func getContainerIP(dockerClient *docker.Client, networkID, container string) (string, error) {
 	details, err := dockerClient.InspectContainerWithOptions(docker.InspectContainerOptions{
 		ID: container,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	ipAddrs := make(map[string]string, len(networkNames))
 	// range over all networks to which the container is connected
 	// and get network-specific IPs
 	for _, network := range details.NetworkSettings.Networks {
-		for _, name := range networkNames {
-			if network.NetworkID == name.ID {
-				ipAddrs[name.Name] = network.IPAddress
-			}
+		if network.NetworkID == networkID {
+			return network.IPAddress, nil
 		}
 	}
-	// check to make sure all networks are found
-	for _, name := range networkNames {
-		if _, exists := ipAddrs[name.Name]; !exists {
-			return nil, fmt.Errorf("networks not found")
-		}
-	}
-	return ipAddrs, nil
+	return "", fmt.Errorf("network not found")
 }
 
 // EndTestSuite ends the test suite by writing the test suite results to the supplied

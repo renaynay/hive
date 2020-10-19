@@ -27,7 +27,7 @@ var (
 )
 
 // runSimulations runs each 'simulation' container, which are hosts for executing one or more test-suites
-func runSimulations(simulatorPattern string, overrides []string, cacher *buildCacher, networkConfig common.NetworkConfig) error {
+func runSimulations(simulatorPattern string, overrides []string, cacher *buildCacher) error {
 
 	// Clean up
 	defer terminateAndUpdate()
@@ -40,7 +40,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	// Create a testcase manager
-	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, networkConfig, dockerClient)
+	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, dockerClient)
 
 	// Start the simulator HTTP API
 	err = startTestSuiteAPI()
@@ -177,7 +177,9 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
-	mux.Get("/testsuite/{suite}/node/{node}", nodeNetworkIPGet)
+	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
+	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
+	mux.Post("/testsuite/{suite}/network/{network}/container/{container}", networkConnect) // TODO change to node?
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -273,6 +275,50 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 }
 
 // TODO document
+func networkCreate(w http.ResponseWriter, request *http.Request) {
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("nodeInfoGet failed", "error", err)
+		return
+	}
+
+	networkName := request.URL.Query().Get(":network")
+	log15.Info("Server - network create")
+
+	if err := testManager.CreateNetwork(testSuite, networkName); err != nil {
+		log15.Error("networkCreate unable to create network", "network", networkName, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
+		return
+	}
+
+	log15.Debug("network created", "network", networkName)
+
+	fmt.Fprint(w, []byte("success")) // TODO ??
+}
+
+// TODO document
+func networkConnect(w http.ResponseWriter, request *http.Request) {
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("nodeInfoGet failed", "error", err)
+		return
+	}
+
+	networkName := request.URL.Query().Get(":network")
+	containerName := request.URL.Query().Get(":container")
+	log15.Info("Server - network connect")
+
+	if err := testManager.ConnectContainerToNetwork(testSuite, networkName, containerName); err != nil {
+		log15.Error("networkCreate unable to connect container to network", "network", networkName, "container", containerName, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
+		return
+	}
+	log15.Debug("container connected to network", "network", networkName, "container", containerName)
+
+	fmt.Fprint(w, []byte("success")) // TODO ?
+}
+
+// TODO document
 func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
@@ -281,25 +327,19 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 	}
 
 	node := request.URL.Query().Get(":node")
+	networkID := request.URL.Query().Get(":network")
 	log15.Info("Server - node network IP get")
 
-	ipAddrs, err := testManager.GetNodeNetworkIPs(common.TestSuiteID(testSuite), node)
+	ipAddr, err := testManager.GetNodeNetworkIP(common.TestSuiteID(testSuite), networkID, node)
 	if err != nil {
 		log15.Error("nodeNetworkIPGet unable to get networkIPs", "node", node, "error", err)
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddrs)
+	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddr)
 
-	data, err := json.Marshal(ipAddrs)
-	if err != nil {
-		log15.Error("unable to marshal IPs", "node", node, "error", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
-		return
-	}
-
-	fmt.Fprint(w, data)
+	fmt.Fprint(w, ipAddr)
 }
 
 //start a new node as part of a test

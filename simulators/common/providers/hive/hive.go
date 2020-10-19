@@ -46,18 +46,44 @@ func New() common.TestSuiteHost {
 }
 
 // TODO document
-func (sim *host) GetClientNetworkIP(testSuite common.TestSuiteID, test common.TestID, node string) ([]byte, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/node/%s", sim.configuration.HostURI, testSuite.String(), node))
+func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string) (string, error) {
+	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkName), "application/json", nil)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return "", err
+	}
+	return string(body), nil
+}
+
+// TODO document
+func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
+	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s/container/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerName), "application/json", nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 200 { // TODO better err check?
+		return fmt.Errorf("error posting create network request, status code %d", resp.StatusCode)
+	}
+	return nil
+}
+
+// TODO document
+func (sim *host) GetClientNetworkIP(testSuite common.TestSuiteID, networkID, node string) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkID, node))
+	if err != nil {
+		return "", err
 	}
 
-	return body, nil
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
 }
 
 //GetClientEnode Get the client enode for the specified node id

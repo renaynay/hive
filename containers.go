@@ -204,15 +204,6 @@ func runContainer(id string, logger log15.Logger, logfile string, shell bool, lo
 		return nil, err
 	}
 
-	// connect container to networks defined in network config
-	for _, network := range testManager.NetworkConfig {
-		if err := connectContainer(network.ID, id); err != nil {
-			log15.Crit("could not connect container to network", "network name", network.Name, "err", err)
-			return nil, err
-		}
-		logger.Debug("connected container to network successfully", "container", id, "network", network.Name)
-	}
-
 	// Start the requested container and wait until it terminates
 	logger.Debug("starting container")
 
