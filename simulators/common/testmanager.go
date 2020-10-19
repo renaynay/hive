@@ -144,11 +144,9 @@ func getContainerIPs(dockerClient *docker.Client, networkNames []*docker.Network
 	// range over all networks to which the container is connected
 	// and get network-specific IPs
 	for _, network := range details.NetworkSettings.Networks {
-		for _, alias := range network.Aliases {
-			for _, name := range networkNames {
-				if alias == name.Name {
-					ipAddrs[name.Name] = network.IPAddress
-				}
+		for _, name := range networkNames {
+			if network.NetworkID == name.ID {
+				ipAddrs[name.Name] = network.IPAddress
 			}
 		}
 	}
