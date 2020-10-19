@@ -291,7 +291,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
 		return
 	}
-	log15.Debug("network created", "network", networkName)
+	log15.Debug("network created", "network", id)
 
 	fmt.Fprint(w, []byte(id)) // TODO ??
 }
@@ -328,7 +328,7 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 
 	node := request.URL.Query().Get(":node")
 	networkID := request.URL.Query().Get(":network")
-	log15.Info("Server - node network IP get")
+	log15.Info("Server - node network IP get", "network", networkID)
 
 	ipAddr, err := testManager.GetNodeNetworkIP(common.TestSuiteID(testSuite), networkID, node)
 	if err != nil {

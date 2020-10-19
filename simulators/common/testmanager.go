@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"gopkg.in/inconshreveable/log15.v2"
+
 	docker "github.com/fsouza/go-dockerclient"
 )
 
@@ -180,6 +182,7 @@ func getContainerIP(dockerClient *docker.Client, networkID, container string) (s
 	// range over all networks to which the container is connected
 	// and get network-specific IPs
 	for _, network := range details.NetworkSettings.Networks {
+		log15.Crit("network list", "network", network.NetworkID)
 		if network.NetworkID == networkID {
 			return network.IPAddress, nil
 		}
