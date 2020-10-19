@@ -109,32 +109,32 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 }
 
 //TODO document
-func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) error {
+func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) (string, error) {
 	// TODO is this necessary?
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
-		return ErrNoSuchTestSuite
+		return "", ErrNoSuchTestSuite
 	}
 	// list networks to make sure not to duplicate
 	existing, err := manager.DockerClient.ListNetworks()
 	if err != nil {
-		return err
+		return "", err
 	}
 	// check for existing networks with same name, and if exists, remove
 	for _, exists := range existing {
 		if exists.Name == networkName {
 			if err := manager.DockerClient.RemoveNetwork(exists.ID); err != nil {
-				return err
+				return "", err
 			}
 		}
 	}
 	// create network
-	_, err = manager.DockerClient.CreateNetwork(docker.CreateNetworkOptions{
+	network, err := manager.DockerClient.CreateNetwork(docker.CreateNetworkOptions{
 		Name:           networkName,
 		CheckDuplicate: true, // TODO set this to tru?
 		Attachable:     true,
 	})
-	return err
+	return network.ID, err
 }
 
 // TODO document
