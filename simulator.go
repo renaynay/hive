@@ -299,11 +299,11 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 
 // TODO document
 func networkConnect(w http.ResponseWriter, request *http.Request) {
-	testSuite, err := checkSuiteRequest(request, w)
-	if err != nil {
-		log15.Error("nodeInfoGet failed", "error", err)
-		return
-	}
+	//testSuite, err := checkSuiteRequest(request, w)
+	//if err != nil {
+	//	log15.Error("nodeInfoGet failed", "error", err)
+	//	return
+	//}
 
 	networkName := request.URL.Query().Get(":network")
 	containerName := request.URL.Query().Get(":node")
