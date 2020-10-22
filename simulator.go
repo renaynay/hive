@@ -179,7 +179,7 @@ func startTestSuiteAPI() error {
 	mux.Delete("/testsuite/{suite}", suiteEnd)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
-	mux.Post("/network/{network}/node/{node}", networkConnect) // TODO change to node?
+	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect) // TODO change to node?
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -299,11 +299,11 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 
 // TODO document
 func networkConnect(w http.ResponseWriter, request *http.Request) {
-	//testSuite, err := checkSuiteRequest(request, w)
-	//if err != nil {
-	//	log15.Error("nodeInfoGet failed", "error", err)
-	//	return
-	//}
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("nodeInfoGet failed", "error", err)
+		return
+	}
 
 	networkName := request.URL.Query().Get(":network")
 	containerName := request.URL.Query().Get(":node")
