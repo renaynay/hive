@@ -179,7 +179,7 @@ func startTestSuiteAPI() error {
 	mux.Delete("/testsuite/{suite}", suiteEnd)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
-	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect) // TODO change to node?
+	mux.Post("/network/{network}/node/{node}", networkConnect) // TODO change to node?
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -294,7 +294,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 	}
 	log15.Debug("network created", "network id", id, "network name", networkName)
 
-	fmt.Fprint(w, []byte(id)) // TODO ??
+	fmt.Fprint(w, id) // TODO ??
 }
 
 // TODO document

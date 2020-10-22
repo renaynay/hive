@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -58,13 +59,14 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 	if err != nil {
 		return "", err
 	}
+
 	return string(body), nil
 }
 
 // TODO document
 func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
 	log15.Crit("CONNECT CONTAINER TO NETWORK")
-	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerName)
+	endpoint := fmt.Sprintf("%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerName)
 	log15.Crit("endpoint: ", "", endpoint)
 	resp, err := http.Post(endpoint, "application/json", nil)
 	if err != nil {
