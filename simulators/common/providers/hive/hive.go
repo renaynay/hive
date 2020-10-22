@@ -14,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 
+	"gopkg.in/inconshreveable/log15.v2"
+
 	"github.com/ethereum/hive/simulators/common"
 )
 
@@ -61,7 +63,10 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 
 // TODO document
 func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
-	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s/container/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerName), "application/json", nil)
+	log15.Crit("CONNECT CONTAINER TO NETWORK")
+	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerName)
+	log15.Crit("endpoint: ", "", endpoint)
+	resp, err := http.Post(endpoint, "application/json", nil)
 	if err != nil {
 		return err
 	}

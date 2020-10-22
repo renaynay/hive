@@ -177,9 +177,9 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
-	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
-	mux.Post("/testsuite/{suite}/network/{network}/container/{container}", networkConnect) // TODO change to node?
+	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
+	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect) // TODO change to node?
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -276,6 +276,7 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 
 // TODO document
 func networkCreate(w http.ResponseWriter, request *http.Request) {
+	log15.Crit("HIT NETWORK CREATE")
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("nodeInfoGet failed", "error", err)
@@ -305,7 +306,7 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 	}
 
 	networkName := request.URL.Query().Get(":network")
-	containerName := request.URL.Query().Get(":container")
+	containerName := request.URL.Query().Get(":node")
 	log15.Info("Server - network connect")
 
 	if err := testManager.ConnectContainerToNetwork(testSuite, networkName, containerName); err != nil {
@@ -320,6 +321,7 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 
 // TODO document
 func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
+	log15.Crit("HIT NETWORK IP GET")
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("nodeInfoGet failed", "error", err)
