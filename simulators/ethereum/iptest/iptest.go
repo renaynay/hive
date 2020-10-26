@@ -90,6 +90,5 @@ func main() {
 		host.KillNode(suiteID, testID, containerID)
 		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s, simIP: %s", clientIP, simIP)}, nil)
 		host.EndTestSuite(suiteID)
-		host.PruneNetworks([]string{networkID})
 	}
 }

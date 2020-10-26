@@ -38,8 +38,6 @@ type TestSuiteHost interface {
 	ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error
 	// TODO document
 	CreateNetwork(testSuite TestSuiteID, networkName string) (string, error)
-	//TODO document
-	PruneNetworks(networks []string) error
 	//GetPseudo gets a new (or pre-supplied) pseudo-client with the specified parameters
 	//One parameter must be named CLIENT
 	//The input is used as environment variables in the new container

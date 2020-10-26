@@ -117,6 +117,7 @@ func simulate(simDuration int, simulator string, simulatorLabel string, logger l
 		if err := dockerClient.RemoveContainer(docker.RemoveContainerOptions{ID: sc.ID, Force: true}); err != nil {
 			slogger.Error("failed to delete simulator container", "error", err)
 		}
+		testManager.PruneNetworks()
 	}()
 
 	// Start the tester container and wait until it finishes
@@ -183,7 +184,6 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
-	mux.Delete("/network/{network}", pruneNetwork)                               // TODO
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -315,23 +315,6 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 	log15.Debug("network created", "network id", id, "network name", networkName)
 
 	fmt.Fprint(w, id) // TODO ??
-}
-
-// TODO document
-func pruneNetwork(w http.ResponseWriter, request *http.Request) {
-	networkName := request.URL.Query().Get(":network")
-
-	log15.Info("Server - network prune")
-
-	if err := testManager.PruneNetwork(networkName); err != nil {
-		log15.Error("pruneNetworks unable to remove network", "network", networkName, "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	log15.Debug("network successfully removed", "network", networkName)
-
-	fmt.Fprint(w, "success")
 }
 
 // TODO document
