@@ -83,7 +83,7 @@ func main() {
 		}
 
 		p := ping.NewPinger()
-		ra, err := net.ResolveIPAddr("tcp", fmt.Sprintf("%s:30303", clientIP))
+		ra, err := net.ResolveIPAddr("ip4:icmp", fmt.Sprintf("%s:30303", clientIP))
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
