@@ -2,11 +2,10 @@ package main
 
 import (
 	"fmt"
-	"net"
 	"os"
+	"sync"
 	"time"
 
-	ping "github.com/tatsushid/go-fastping"
 	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/ethereum/hive/simulators/common"
@@ -63,6 +62,11 @@ func main() {
 			os.Exit(1)
 		}
 		// TODO how to connect own sim container to this network
+		network2ID, err := host.CreateNetwork(suiteID, "network2")
+		if err != nil {
+			log.Error("could not create network", "err", err.Error())
+			os.Exit(1)
+		}
 
 		// connect client to network
 		if err := host.ConnectContainerToNetwork(suiteID, networkID, containerID); err != nil {
@@ -74,6 +78,11 @@ func main() {
 			log.Error("could not connect container to network", "err", err.Error())
 			os.Exit(1)
 		}
+		// connect sim to network2
+		if err := host.ConnectContainerToNetwork(suiteID, network2ID, ourOwnContainerID); err != nil {
+			log.Error("could not connect container to network", "err", err.Error())
+			os.Exit(1)
+		}
 
 		// get client ip
 		clientIP, err := host.GetContainerNetworkIP(suiteID, networkID, containerID)
@@ -82,34 +91,31 @@ func main() {
 			os.Exit(1)
 		}
 
-		p := ping.NewPinger()
-		ra, err := net.ResolveIPAddr("ip4:icmp", fmt.Sprintf("%s:30303", clientIP))
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		p.AddIPAddr(ra)
-		p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
-			log15.Crit("IP Addr: %s receive, RTT: %v\n", "addr", addr.String(), "rtt", rtt)
-		}
-		p.OnIdle = func() {
-			log15.Crit("finish")
-		}
-		err = p.Run()
-		if err != nil {
-			log15.Crit(err.Error())
-		}
-
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
 		if err != nil {
 			log.Error("could not get client network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
+		// get our 2nd IP on network 2
+		simIP2, err := host.GetContainerNetworkIP(suiteID, network2ID, ourOwnContainerID)
+		if err != nil {
+			log.Error("could not get client network ip addresses", "err", err.Error())
+			os.Exit(1)
+		}
 
-		log.Info("got bridge IP: ", "ip", ip)
-		log.Info("got network1 ip for client", clientIP)
-		log.Info("got network1 ip for sim", simIP)
+		log15.Crit("got bridge IP: ", "ip", ip)
+		log15.Crit("got network1 ip for client", "ip", clientIP)
+		log15.Crit("got network1 ip for sim", "ip", simIP)
+		log15.Crit("got network2 ip for sim", "IP", simIP2)
+
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func(wg sync.WaitGroup) {
+			time.Sleep(5000)
+			wg.Done()
+		}(wg)
+		wg.Wait()
 
 		host.KillNode(suiteID, testID, containerID)
 		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s, simIP: %s", clientIP, simIP)}, nil)
