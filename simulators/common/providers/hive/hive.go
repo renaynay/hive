@@ -205,7 +205,7 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 
 // TODO document
 func (sim *host) GetSimIP() (string, error) {
-
+	return "", nil
 }
 
 //GetPseudo starts a new pseudo-client with the specified parameters
