@@ -206,7 +206,7 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 }
 
 // TODO document
-func (sim *host) GetSimIP(testSuite common.TestSuiteID) (string, error) {
+func (sim *host) GetSimContainerID(testSuite common.TestSuiteID) (string, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/simulator", sim.configuration.HostURI, testSuite))
 	if err != nil {
 		return "", err

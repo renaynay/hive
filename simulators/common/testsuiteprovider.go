@@ -44,7 +44,7 @@ type TestSuiteHost interface {
 	//Returns container id, ip and mac
 	GetPseudo(testSuite TestSuiteID, test TestID, parameters map[string]string) (string, net.IP, *string, error)
 	// TODO document
-	GetSimIP(testSuite TestSuiteID) (string, error)
+	GetSimContainerID(testSuite TestSuiteID) (string, error)
 	//Signal that a node is no longer required
 	KillNode(testSuite TestSuiteID, test TestID, node string) error
 }

@@ -45,12 +45,12 @@ func main() {
 			os.Exit(1)
 		}
 
-		ourOwnIP, err := host.GetSimIP(suiteID)
+		ourOwnContainerID, err := host.GetSimContainerID(suiteID)
 		if err != nil {
 			log.Error("could not get sim container IP", "err", err.Error())
 			os.Exit(1)
 		}
-		log.Info("OUR OWN IP", "ip", ourOwnIP)
+		log.Info("OUR OWN CONTAINER ID", "ID", ourOwnContainerID)
 
 		networkID, err := host.CreateNetwork(suiteID, "network1")
 		if err != nil {
@@ -59,22 +59,36 @@ func main() {
 		}
 		// TODO how to connect own sim container to this network
 
+		// connect client to network
 		if err := host.ConnectContainerToNetwork(suiteID, networkID, containerID); err != nil {
 			log.Error("could not connect container to network", "err", err.Error())
 			os.Exit(1)
 		}
+		// connect sim to network
+		if err := host.ConnectContainerToNetwork(suiteID, networkID, ourOwnContainerID); err != nil {
+			log.Error("could not connect container to network", "err", err.Error())
+			os.Exit(1)
+		}
 
-		res, err := host.GetContainerNetworkIP(suiteID, networkID, containerID)
+		// get client ip
+		clientIP, err := host.GetContainerNetworkIP(suiteID, networkID, containerID)
+		if err != nil {
+			log.Error("could not get client network ip addresses", "err", err.Error())
+			os.Exit(1)
+		}
+		//get our own ip
+		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
 		if err != nil {
 			log.Error("could not get client network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
 
 		log.Info("got bridge IP: ", "ip", ip)
-		log.Info("got network1 ip", res)
+		log.Info("got network1 ip for client", clientIP)
+		log.Info("got network1 ip for sim", simIP)
 
 		host.KillNode(suiteID, testID, containerID)
-		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("%v", res)}, nil)
+		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s, simIP: %s", clientIP, simIP)}, nil)
 		host.EndTestSuite(suiteID)
 	}
 }
