@@ -68,7 +68,7 @@ func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, network
 	log15.Crit("CONNECT CONTAINER TO NETWORK")
 	log15.Crit("network name", "name", networkName)
 	log15.Crit("containerName", "name", containerName)
-	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite, networkName, containerName)
+	endpoint := fmt.Sprintf("%s/testsuite/%s/node/%s/network/%s", sim.configuration.HostURI, testSuite, containerName, networkName)
 	log15.Crit("endpoint: ", "", endpoint)
 	resp, err := http.Post(endpoint, "application/json", nil)
 	if err != nil {

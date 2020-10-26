@@ -179,7 +179,7 @@ func startTestSuiteAPI() error {
 	mux.Delete("/testsuite/{suite}", suiteEnd)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
-	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect)
+	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO switch back
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
