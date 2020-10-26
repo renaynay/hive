@@ -1,16 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/ethereum/hive/simulators/common"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/hive/simulators/common/providers/hive"
-	telnet "github.com/reiver/go-telnet"
 )
 
 func main() {
@@ -80,21 +82,39 @@ func main() {
 			os.Exit(1)
 		}
 
-		conn, err := telnet.DialTo(fmt.Sprintf("%s:30303", clientIP))
+		type Payload struct {
+			Jsonrpc string        `json:"jsonrpc"`
+			Method  string        `json:"method"`
+			Params  []interface{} `json:"params"`
+			ID      int           `json:"id"`
+		}
+
+		data := Payload{
+			Jsonrpc: "2.0",
+			Method:  "web3_clientVersion",
+			ID:      67,
+		}
+		payloadBytes, err := json.Marshal(data)
 		if err != nil {
-			log.Error("could not dial", "err", err.Error())
+			log.Error("could not marshal payload", "err", err.Error())
+			os.Exit(1)
+		}
+		body := bytes.NewReader(payloadBytes)
+
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s:8545"), body)
+		if err != nil {
+			log.Error("could not create new request", "err", err.Error())
+			os.Exit(1)
+		}
+		req.Header.Set("Content-Type", "application/json")
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Error("could not send request to geth node", "err", err.Error())
 			os.Exit(1)
 		}
 
-		if _, err := conn.Write([]byte("ping")); err != nil {
-			log.Error("could not write to conn", "err", err.Error())
-			os.Exit(1)
-		}
-		buf := make([]byte, 10)
-		go func(buf []byte) {
-			conn.Read(buf)
-			log15.Crit("reading", "buf", string(buf))
-		}(buf)
+		spew.Dump(resp)
 
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
