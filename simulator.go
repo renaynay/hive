@@ -50,7 +50,6 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	for simulator, simulatorImage := range simulators {
-		log15.Crit("simulator", "key", simulator, "val", simulatorImage)
 		logger := log15.New("simulator", simulator)
 
 		// TODO -  logdir:
@@ -184,7 +183,7 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
-	mux.Delete("/networks", pruneNetworks)                                       // TODO
+	mux.Delete("/network/{network}", pruneNetwork)                               // TODO
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -319,8 +318,20 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 }
 
 // TODO document
-func pruneNetworks(w http.ResponseWriter, request *http.Request) {
-	// TODO
+func pruneNetwork(w http.ResponseWriter, request *http.Request) {
+	networkName := request.URL.Query().Get(":network")
+
+	log15.Info("Server - network prune")
+
+	if err := testManager.PruneNetwork(networkName); err != nil {
+		log15.Error("pruneNetworks unable to remove network", "network", networkName, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	log15.Debug("network successfully removed", "network", networkName)
+
+	fmt.Fprint(w, "success")
 }
 
 // TODO document

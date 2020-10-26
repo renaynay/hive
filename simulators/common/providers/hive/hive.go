@@ -64,6 +64,25 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 }
 
 // TODO document
+func (sim *host) PruneNetworks(networks []string) error {
+	for _, network := range networks {
+		req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/network/%s", sim.configuration.HostURI, network), nil)
+		if err != nil {
+			return err
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		if resp.StatusCode != 200 {
+			return fmt.Errorf("error sending delete network request, status code %s", resp.StatusCode)
+		}
+	}
+	return nil
+}
+
+// TODO document
 func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
 	endpoint := fmt.Sprintf("%s/testsuite/%s/node/%s/network/%s", sim.configuration.HostURI, testSuite, containerName, networkName)
 	resp, err := http.Post(endpoint, "application/json", nil)

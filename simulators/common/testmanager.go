@@ -160,6 +160,11 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 	return network.ID, err
 }
 
+//TODO document
+func (manager *TestManager) PruneNetwork(networkName string) error {
+	return manager.DockerClient.RemoveNetwork(networkName)
+}
+
 // TODO document
 func (manager *TestManager) ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error {
 	// TODO is this necessary?
