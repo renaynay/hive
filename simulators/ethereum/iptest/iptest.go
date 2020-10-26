@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
+	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/ethereum/hive/simulators/common"
 
@@ -113,8 +113,10 @@ func main() {
 			log.Error("could not send request to geth node", "err", err.Error())
 			os.Exit(1)
 		}
+		buf := make([]byte, 10)
+		resp.Body.Read(buf)
 
-		spew.Dump(resp)
+		log15.Crit("resp", "resp", buf)
 
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
