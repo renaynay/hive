@@ -118,6 +118,7 @@ func simulate(simDuration int, simulator string, simulatorLabel string, logger l
 			slogger.Error("failed to delete simulator container", "error", err)
 		}
 		testManager.PruneNetworks()
+		slogger.Debug("docker networks pruned")
 	}()
 
 	// Start the tester container and wait until it finishes
