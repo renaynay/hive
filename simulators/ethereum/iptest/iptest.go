@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"gopkg.in/inconshreveable/log15.v2"
+
 	"github.com/ethereum/hive/simulators/common"
 
 	"github.com/ethereum/go-ethereum/log"
@@ -88,6 +90,11 @@ func main() {
 			log.Error("could not write to conn", "err", err.Error())
 			os.Exit(1)
 		}
+		buf := make([]byte, 10)
+		go func(buf []byte) {
+			conn.Read(buf)
+			log15.Crit("reading", "buf", string(buf))
+		}(buf)
 
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
