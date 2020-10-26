@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 
+	"gopkg.in/inconshreveable/log15.v2"
+
 	"github.com/ethereum/hive/simulators/common"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/hive/simulators/common/providers/hive"
+	telnet "github.com/reiver/go-telnet"
 )
 
 func main() {
@@ -76,6 +79,19 @@ func main() {
 			log.Error("could not get client network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
+
+		log15.Crit("clientip", clientIP)
+
+		conn, err := telnet.DialTo(fmt.Sprintf("%s:30303", clientIP))
+		if err != nil {
+			log.Error("could not dial", "err", err.Error())
+			os.Exit(1)
+		}
+		if _, err := conn.Write([]byte("blah")); err != nil {
+			log.Error("could not write to conn", "err", err.Error())
+			os.Exit(1)
+		}
+
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
 		if err != nil {
