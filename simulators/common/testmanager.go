@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/inconshreveable/log15.v2"
-
 	docker "github.com/fsouza/go-dockerclient"
 )
 
@@ -164,17 +162,8 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 
 //TODO document
 func (manager *TestManager) PruneNetworks() error {
-	networks, err := manager.DockerClient.ListNetworks()
-	if err != nil {
-		return err
-	}
-	for _, network := range networks {
-		log15.Crit("network name", "name", network.Name, "id", network.ID)
-		//if err := manager.DockerClient.RemoveNetwork(network.ID); err != nil {
-		//	return err
-		//}
-	}
-	return nil
+	_, err := manager.DockerClient.PruneNetworks(docker.PruneNetworksOptions{})
+	return err
 }
 
 // TODO document
