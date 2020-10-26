@@ -40,7 +40,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	// Create a testcase manager
-	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, dockerClient, simulators)
+	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, dockerClient)
 
 	// Start the simulator HTTP API
 	err = startTestSuiteAPI()
@@ -103,6 +103,8 @@ func simulate(simDuration int, simulator string, simulatorLabel string, logger l
 		},
 		HostConfig: hostConfig,
 	})
+	// store simulation container details for later access
+	testManager.AddSimContainer(sc)
 
 	if err != nil {
 		logger.Error("failed to create simulator", "error", err)

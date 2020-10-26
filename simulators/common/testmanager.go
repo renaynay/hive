@@ -17,7 +17,7 @@ type TestManager struct {
 
 	DockerClient *docker.Client // TODO is this ok?
 
-	simulators map[string]string
+	SimulationContainer *docker.Container
 
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
@@ -31,7 +31,7 @@ type TestManager struct {
 }
 
 // NewTestManager is a constructor returning a TestManager
-func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, client *docker.Client, simulators map[string]string) *TestManager {
+func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, client *docker.Client) *TestManager {
 	return &TestManager{
 		OutputPath:        outputPath,
 		testLimiter:       testLimiter,
@@ -39,7 +39,6 @@ func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(te
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
 		DockerClient:      client,
-		simulators:        simulators, // TODO maybe only store container IDs?
 	}
 }
 
@@ -112,8 +111,24 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 }
 
 // TODO document
+func (manager *TestManager) AddSimContainer(container *docker.Container) {
+	manager.testSuiteMutex.RLock()
+	defer manager.testSuiteMutex.RUnlock()
+	manager.SimulationContainer = container
+}
+
+// TODO document
 func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
-	return "", nil // TODO
+	_, ok := manager.IsTestSuiteRunning(testSuite)
+	if !ok {
+		return "", ErrNoSuchTestSuite
+	}
+	// error out if simulation container not found
+	if manager.SimulationContainer == nil {
+		return "", ErrNoSuchNode
+	}
+
+	return manager.SimulationContainer.ID, nil
 }
 
 //TODO document

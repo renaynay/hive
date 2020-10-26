@@ -45,6 +45,13 @@ func main() {
 			os.Exit(1)
 		}
 
+		ourOwnIP, err := host.GetSimIP(suiteID)
+		if err != nil {
+			log.Error("could not get sim container IP", "err", err.Error())
+			os.Exit(1)
+		}
+		log.Info("OUR OWN IP", "ip", ourOwnIP)
+
 		networkID, err := host.CreateNetwork(suiteID, "network1")
 		if err != nil {
 			log.Error("could not create network", "err", err.Error())

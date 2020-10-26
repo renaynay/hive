@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -204,8 +206,17 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 }
 
 // TODO document
-func (sim *host) GetSimIP() (string, error) {
-	return "", nil
+func (sim *host) GetSimIP(testSuite common.TestSuiteID) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/simulator", sim.configuration.HostURI, testSuite))
+	if err != nil {
+		return "", err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	spew.Dump(body)
+	return string(body), nil
 }
 
 //GetPseudo starts a new pseudo-client with the specified parameters
