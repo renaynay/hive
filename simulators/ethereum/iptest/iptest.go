@@ -1,12 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"net"
 	"os"
+	"time"
 
+	ping "github.com/tatsushid/go-fastping"
 	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/ethereum/hive/simulators/common"
@@ -82,41 +82,23 @@ func main() {
 			os.Exit(1)
 		}
 
-		type Payload struct {
-			Jsonrpc string        `json:"jsonrpc"`
-			Method  string        `json:"method"`
-			Params  []interface{} `json:"params"`
-			ID      int           `json:"id"`
-		}
-
-		data := Payload{
-			Jsonrpc: "2.0",
-			Method:  "web3_clientVersion",
-			ID:      67,
-		}
-		payloadBytes, err := json.Marshal(data)
+		p := ping.NewPinger()
+		ra, err := net.ResolveIPAddr("tcp", fmt.Sprintf("%s:30303", clientIP))
 		if err != nil {
-			log.Error("could not marshal payload", "err", err.Error())
+			fmt.Println(err)
 			os.Exit(1)
 		}
-		body := bytes.NewReader(payloadBytes)
-
-		req, err := http.NewRequest("POST", fmt.Sprintf("%s:8545"), body)
-		if err != nil {
-			log.Error("could not create new request", "err", err.Error())
-			os.Exit(1)
+		p.AddIPAddr(ra)
+		p.OnRecv = func(addr *net.IPAddr, rtt time.Duration) {
+			log15.Crit("IP Addr: %s receive, RTT: %v\n", "addr", addr.String(), "rtt", rtt)
 		}
-		req.Header.Set("Content-Type", "application/json")
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			log.Error("could not send request to geth node", "err", err.Error())
-			os.Exit(1)
+		p.OnIdle = func() {
+			log15.Crit("finish")
 		}
-		buf := make([]byte, 10)
-		resp.Body.Read(buf)
-
-		log15.Crit("resp", "resp", buf)
+		err = p.Run()
+		if err != nil {
+			log15.Crit(err.Error())
+		}
 
 		//get our own ip
 		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, ourOwnContainerID)
