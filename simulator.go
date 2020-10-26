@@ -40,7 +40,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	// Create a testcase manager
-	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, dockerClient)
+	testManager = common.NewTestManager(*testResultsRoot, *hiveMaxTestsFlag, killNodeHandler, dockerClient, simulators)
 
 	// Start the simulator HTTP API
 	err = startTestSuiteAPI()
@@ -50,6 +50,7 @@ func runSimulations(simulatorPattern string, overrides []string, cacher *buildCa
 	}
 
 	for simulator, simulatorImage := range simulators {
+		log15.Crit("simulator", "key", simulator, "val", simulatorImage)
 		logger := log15.New("simulator", simulator)
 
 		// TODO -  logdir:
@@ -177,9 +178,11 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
+	mux.Get("/testsuite/{suite}/simulator", getSimulatorID)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
-	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO switch back
+	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
+	mux.Delete("/networks", pruneNetworks)                                       // TODO
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -275,11 +278,27 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 }
 
 // TODO document
-func networkCreate(w http.ResponseWriter, request *http.Request) {
-	log15.Crit("HIT NETWORK CREATE")
+func getSimulatorID(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
-		log15.Error("nodeInfoGet failed", "error", err)
+		log15.Error("getSimulatorID failed", "error", err)
+		return
+	}
+	id, err := testManager.GetSimID(testSuite)
+	if err != nil {
+		log15.Error("getSimulatorID failed", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log15.Debug("sim container id", "id", id)
+	fmt.Fprint(w, id)
+}
+
+// TODO document
+func networkCreate(w http.ResponseWriter, request *http.Request) {
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("networkCreate failed", "error", err)
 		return
 	}
 
@@ -298,10 +317,15 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 }
 
 // TODO document
+func pruneNetworks(w http.ResponseWriter, request *http.Request) {
+	// TODO
+}
+
+// TODO document
 func networkConnect(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
-		log15.Error("nodeInfoGet failed", "error", err)
+		log15.Error("networkConnect failed", "error", err)
 		return
 	}
 
@@ -321,10 +345,9 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 
 // TODO document
 func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
-	log15.Crit("HIT NETWORK IP GET")
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
-		log15.Error("nodeInfoGet failed", "error", err)
+		log15.Error("nodeNetworkIPGet failed", "error", err)
 		return
 	}
 
@@ -339,7 +362,7 @@ func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	log15.Debug("nodeNetworkIPGet", "node", node, "ip addrs", ipAddr)
+	log15.Debug("got node IP", "node", node, "ip addr", ipAddr)
 
 	fmt.Fprint(w, ipAddr)
 }

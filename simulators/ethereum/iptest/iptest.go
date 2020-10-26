@@ -57,7 +57,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		res, err := host.GetClientNetworkIP(suiteID, networkID, containerID)
+		res, err := host.GetContainerNetworkIP(suiteID, networkID, containerID)
 		if err != nil {
 			log.Error("could not get client network ip addresses", "err", err.Error())
 			os.Exit(1)

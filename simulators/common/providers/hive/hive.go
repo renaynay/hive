@@ -15,8 +15,6 @@ import (
 	"strconv"
 	"strings"
 
-	"gopkg.in/inconshreveable/log15.v2"
-
 	"github.com/ethereum/hive/simulators/common"
 )
 
@@ -65,23 +63,19 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 
 // TODO document
 func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
-	log15.Crit("CONNECT CONTAINER TO NETWORK")
-	log15.Crit("network name", "name", networkName)
-	log15.Crit("containerName", "name", containerName)
 	endpoint := fmt.Sprintf("%s/testsuite/%s/node/%s/network/%s", sim.configuration.HostURI, testSuite, containerName, networkName)
-	log15.Crit("endpoint: ", "", endpoint)
 	resp, err := http.Post(endpoint, "application/json", nil)
 	if err != nil {
 		return err
 	}
 	if resp.StatusCode != 200 { // TODO better err check?
-		return fmt.Errorf("error posting create network request, status code %d", resp.StatusCode)
+		return fmt.Errorf("error posting connect container to network request, status code %d", resp.StatusCode)
 	}
 	return nil
 }
 
 // TODO document
-func (sim *host) GetClientNetworkIP(testSuite common.TestSuiteID, networkID, node string) (string, error) {
+func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkID, node string) (string, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkID, node))
 	if err != nil {
 		return "", err
@@ -207,6 +201,11 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 		return idip[0], net.ParseIP(idip[1]), &idip[2], nil
 	}
 	return data, net.IP{}, nil, fmt.Errorf("no ip address returned: %v", data)
+}
+
+// TODO document
+func (sim *host) GetSimIP() (string, error) {
+
 }
 
 //GetPseudo starts a new pseudo-client with the specified parameters

@@ -33,7 +33,7 @@ type TestSuiteHost interface {
 	//Returns container id, ip and mac
 	GetNode(testSuite TestSuiteID, test TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error)
 	// TODO DOCUMENT
-	GetClientNetworkIP(testSuite TestSuiteID, networkID, node string) (string, error)
+	GetContainerNetworkIP(testSuite TestSuiteID, networkID, node string) (string, error)
 	// TODO document
 	ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error
 	// TODO document
@@ -43,6 +43,8 @@ type TestSuiteHost interface {
 	//The input is used as environment variables in the new container
 	//Returns container id, ip and mac
 	GetPseudo(testSuite TestSuiteID, test TestID, parameters map[string]string) (string, net.IP, *string, error)
+	// TODO document
+	GetSimIP() (string, error)
 	//Signal that a node is no longer required
 	KillNode(testSuite TestSuiteID, test TestID, node string) error
 }

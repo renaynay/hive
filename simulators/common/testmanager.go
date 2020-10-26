@@ -5,8 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/inconshreveable/log15.v2"
-
 	docker "github.com/fsouza/go-dockerclient"
 )
 
@@ -18,6 +16,8 @@ type TestManager struct {
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
 
 	DockerClient *docker.Client // TODO is this ok?
+
+	simulators map[string]string
 
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
@@ -31,7 +31,7 @@ type TestManager struct {
 }
 
 // NewTestManager is a constructor returning a TestManager
-func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, client *docker.Client) *TestManager {
+func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(testSuite TestSuiteID, test TestID, node string) error, client *docker.Client, simulators map[string]string) *TestManager {
 	return &TestManager{
 		OutputPath:        outputPath,
 		testLimiter:       testLimiter,
@@ -39,6 +39,7 @@ func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(te
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
 		DockerClient:      client,
+		simulators:        simulators, // TODO maybe only store container IDs?
 	}
 }
 
@@ -108,6 +109,11 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 		}
 	}
 	return nodeInfo, nil
+}
+
+// TODO document
+func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
+	return "", nil // TODO
 }
 
 //TODO document
@@ -182,7 +188,6 @@ func getContainerIP(dockerClient *docker.Client, networkID, container string) (s
 	// range over all networks to which the container is connected
 	// and get network-specific IPs
 	for _, network := range details.NetworkSettings.Networks {
-		log15.Crit("network list", "network", network.NetworkID)
 		if network.NetworkID == networkID {
 			return network.IPAddress, nil
 		}
