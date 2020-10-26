@@ -88,8 +88,8 @@ func main() {
 		log.Info("got network1 ip for sim", simIP)
 
 		host.KillNode(suiteID, testID, containerID)
-		host.PruneNetworks([]string{networkID})
 		host.EndTest(suiteID, testID, &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s, simIP: %s", clientIP, simIP)}, nil)
 		host.EndTestSuite(suiteID)
+		host.PruneNetworks([]string{networkID})
 	}
 }
