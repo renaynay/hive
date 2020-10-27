@@ -159,6 +159,7 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 		CheckDuplicate: true,
 		Attachable:     true,
 	})
+	manager.networks = append(manager.networks, network.ID)
 	return network.ID, err
 }
 
