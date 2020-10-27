@@ -103,7 +103,14 @@ func main() {
 			log.Error("could not get simulation network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
+		// get sim bridge ip
 		simIPBridge, err := host.GetContainerNetworkIP(suiteID, "5717936aecb1", ourOwnContainerID) // TODO hardcoded ID of bridge, lets see if this works
+		if err != nil {
+			log.Error("could not get simulation network ip addresses", "err", err.Error())
+			os.Exit(1)
+		}
+		// get client bridge ip
+		clientIPBridge, err := host.GetContainerNetworkIP(suiteID, "5717936aecb1", containerID) // TODO hardcoded ID of bridge, lets see if this works
 		if err != nil {
 			log.Error("could not get simulation network ip addresses", "err", err.Error())
 			os.Exit(1)
@@ -113,6 +120,7 @@ func main() {
 		log15.Crit("got network1 ip for client", "ip", clientIP)
 		log15.Crit("got network1 ip for sim", "ip", simIP)
 		log15.Crit("got network2 ip for sim", "IP", simIP2)
+		log15.Crit("got bridge ip for client", "ip", clientIPBridge)
 		log15.Crit("got bridge ip for sim", "IP", simIPBridge)
 
 		wg := sync.WaitGroup{}
