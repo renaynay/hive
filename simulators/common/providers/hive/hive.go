@@ -46,7 +46,8 @@ func New() common.TestSuiteHost {
 	}
 }
 
-// TODO document
+// CreateNetwork sends a request to the hive server to create a docker network by
+// the given name.
 func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string) (string, error) {
 	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkName), "application/json", nil)
 	if err != nil {
@@ -61,7 +62,8 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 	return string(body), nil
 }
 
-// TODO document
+// ConnectContainerToNetwork sends a request to the hive server to connect the given
+// container to the given network.
 func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
 	endpoint := fmt.Sprintf("%s/testsuite/%s/node/%s/network/%s", sim.configuration.HostURI, testSuite, containerName, networkName)
 	resp, err := http.Post(endpoint, "application/json", nil)
@@ -74,7 +76,8 @@ func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, network
 	return nil
 }
 
-// TODO document
+// GetContainerNetworkIP sends a request to the hive server to get the IP address
+// of the given container on the given network.
 func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkID, node string) (string, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkID, node))
 	if err != nil {
@@ -203,7 +206,8 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 	return data, net.IP{}, nil, fmt.Errorf("no ip address returned: %v", data)
 }
 
-// TODO document
+// GetSimContainerID sends a request to the hive server to get the
+// container ID of the simulation container.
 func (sim *host) GetSimContainerID(testSuite common.TestSuiteID) (string, error) {
 	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/simulator", sim.configuration.HostURI, testSuite))
 	if err != nil {

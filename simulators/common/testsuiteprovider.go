@@ -32,18 +32,18 @@ type TestSuiteHost interface {
 	//initFiles is a dictionary of initialising files (eg: chain.rlp, blocks, genesis etc).
 	//Returns container id, ip and mac
 	GetNode(testSuite TestSuiteID, test TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error)
-	// TODO DOCUMENT
+	// GetContainerNetworkIP gets the given container's IP address on the given network.
 	GetContainerNetworkIP(testSuite TestSuiteID, networkID, node string) (string, error)
-	// TODO document
+	// ConnectContainerToNetwork connects the given container to the given network
 	ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error
-	// TODO document
+	// CreateNetwork creates a network by the given name.
 	CreateNetwork(testSuite TestSuiteID, networkName string) (string, error)
 	//GetPseudo gets a new (or pre-supplied) pseudo-client with the specified parameters
 	//One parameter must be named CLIENT
 	//The input is used as environment variables in the new container
 	//Returns container id, ip and mac
 	GetPseudo(testSuite TestSuiteID, test TestID, parameters map[string]string) (string, net.IP, *string, error)
-	// TODO document
+	// GetSimContainerID gets the container ID of the simulation container.
 	GetSimContainerID(testSuite TestSuiteID) (string, error)
 	//Signal that a node is no longer required
 	KillNode(testSuite TestSuiteID, test TestID, node string) error

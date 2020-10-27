@@ -115,7 +115,6 @@ func main() {
 	}
 	//set up clients and get their versions
 	initClients(cacher)
-
 	// Depending on the flags, either run hive in place or in an outer container shell
 	var fail error
 	if *noShellContainer {
@@ -165,7 +164,6 @@ func initClients(cacher *buildCacher) error {
 		log15.Crit("failed to build client images", "error", err)
 		return err
 	}
-
 	// Build all pseudo clients. pseudo-clients need to be available
 	// to simulators. pseudo-clients play the role of special types
 	// of actor in a network, such as network relay for example

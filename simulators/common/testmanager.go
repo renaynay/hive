@@ -15,7 +15,7 @@ type TestManager struct {
 	OutputPath       string
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
 
-	DockerClient *docker.Client // TODO is this ok?
+	DockerClient *docker.Client
 
 	SimulationContainer *docker.Container
 
@@ -110,14 +110,16 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 	return nodeInfo, nil
 }
 
-// TODO document
+// AddSimContainer adds the given simulation container to the test manager
+// for later access.
 func (manager *TestManager) AddSimContainer(container *docker.Container) {
 	manager.testSuiteMutex.RLock()
 	defer manager.testSuiteMutex.RUnlock()
 	manager.SimulationContainer = container
 }
 
-// TODO document
+// GetSimID returns the container ID for the test manager's simulation
+// container.
 func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
@@ -131,9 +133,9 @@ func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
 	return manager.SimulationContainer.ID, nil
 }
 
-//TODO document
+// CreateNetwork creates a docker network with the given network name, returning
+// the network ID upon success.
 func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) (string, error) {
-	// TODO is this necessary?
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return "", ErrNoSuchTestSuite
@@ -154,37 +156,35 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 	// create network
 	network, err := manager.DockerClient.CreateNetwork(docker.CreateNetworkOptions{
 		Name:           networkName,
-		CheckDuplicate: true, // TODO set this to tru?
+		CheckDuplicate: true,
 		Attachable:     true,
 	})
 	return network.ID, err
 }
 
-//TODO document
+// PruneNetworks prunes all unused docker networks. // TODO this might be dangerous no?, maybe it's best to do a remove?
 func (manager *TestManager) PruneNetworks() error {
 	_, err := manager.DockerClient.PruneNetworks(docker.PruneNetworksOptions{})
 	return err
 }
 
-// TODO document
-func (manager *TestManager) ConnectContainerToNetwork(testSuite TestSuiteID, networkName, containerName string) error {
-	// TODO is this necessary?
+// ConnectContainerToNetwork connects the given container to the given network.
+func (manager *TestManager) ConnectContainerToNetwork(testSuite TestSuiteID, networkID, containerID string) error {
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return ErrNoSuchTestSuite
 	}
-	return manager.DockerClient.ConnectNetwork(networkName, docker.NetworkConnectionOptions{
-		Container:      containerName,
+	return manager.DockerClient.ConnectNetwork(networkID, docker.NetworkConnectionOptions{
+		Container:      containerID,
 		EndpointConfig: nil, // TODO ?
 	})
 }
 
-// TODO document
+// GetNodeNetworkIP gets the IP address of the given container on the given network.
 func (manager *TestManager) GetNodeNetworkIP(testSuite TestSuiteID, networkID, nodeID string) (string, error) {
 	manager.nodeMutex.Lock()
 	defer manager.nodeMutex.Unlock()
 
-	// TODO is this necessary?
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return "", ErrNoSuchTestSuite
@@ -198,7 +198,6 @@ func (manager *TestManager) GetNodeNetworkIP(testSuite TestSuiteID, networkID, n
 	return ipAddr, nil
 }
 
-// TODO returns map[networkName]IPAddr
 func getContainerIP(dockerClient *docker.Client, networkID, container string) (string, error) {
 	details, err := dockerClient.InspectContainerWithOptions(docker.InspectContainerOptions{
 		ID: container,

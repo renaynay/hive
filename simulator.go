@@ -279,7 +279,7 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// TODO document
+// getSimulatorID gets the container ID of the simulation container.
 func getSimulatorID(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
@@ -296,7 +296,7 @@ func getSimulatorID(w http.ResponseWriter, request *http.Request) {
 	fmt.Fprint(w, id)
 }
 
-// TODO document
+// networkCreate creates a docker network.
 func networkCreate(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
@@ -318,7 +318,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 	fmt.Fprint(w, id) // TODO ??
 }
 
-// TODO document
+// networkConnect connects a container to a network.
 func networkConnect(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
@@ -340,7 +340,7 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 	fmt.Fprint(w, "success") // TODO ?
 }
 
-// TODO document
+// nodeNetworkIPGet gets the IP address of a container on a network.
 func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
