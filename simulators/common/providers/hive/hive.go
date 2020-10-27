@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -215,7 +213,6 @@ func (sim *host) GetSimContainerID(testSuite common.TestSuiteID) (string, error)
 	if err != nil {
 		return "", err
 	}
-	spew.Dump(body)
 	return string(body), nil
 }
 

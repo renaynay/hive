@@ -121,20 +121,11 @@ func main() {
 	if *noShellContainer {
 		fail = mainInHost(overrides, cacher)
 	} else {
-		fail = mainInShell(overrides, cacher) // TODO add networks to this? why shell necessary?
+		fail = mainInShell(overrides, cacher) // TODO will this fail for shell?
 	}
 	if fail != nil {
-		//errs := killNetworks()
-		//if len(errs) > 0 {
-		//	log15.Crit("could not kill networks", "errs", errs) // todo change log errs
-		//}
 		os.Exit(-1)
 	}
-
-	//errs := killNetworks()
-	//if len(errs) > 0 {
-	//	log15.Crit("could not kill networks", "errs", errs) // todo change log errs
-	//}
 }
 
 // mainInHost runs the actual hive testsuites on the
