@@ -15,9 +15,9 @@ type TestManager struct {
 	OutputPath       string
 	KillNodeCallback func(testSuite TestSuiteID, test TestID, node string) error
 
-	DockerClient *docker.Client
-
-	SimulationContainer *docker.Container
+	dockerClient        *docker.Client
+	simulationContainer *docker.Container
+	networks            []string // list of all networks started by the test.
 
 	testLimiter       int
 	runningTestSuites map[TestSuiteID]*TestSuite
@@ -38,7 +38,7 @@ func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(te
 		KillNodeCallback:  killNodeCallback,
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
-		DockerClient:      client,
+		dockerClient:      client,
 	}
 }
 
@@ -115,7 +115,7 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 func (manager *TestManager) AddSimContainer(container *docker.Container) {
 	manager.testSuiteMutex.RLock()
 	defer manager.testSuiteMutex.RUnlock()
-	manager.SimulationContainer = container
+	manager.simulationContainer = container
 }
 
 // GetSimID returns the container ID for the test manager's simulation
@@ -126,11 +126,11 @@ func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
 		return "", ErrNoSuchTestSuite
 	}
 	// error out if simulation container not found
-	if manager.SimulationContainer == nil {
+	if manager.simulationContainer == nil {
 		return "", ErrNoSuchNode
 	}
 
-	return manager.SimulationContainer.ID, nil
+	return manager.simulationContainer.ID, nil
 }
 
 // CreateNetwork creates a docker network with the given network name, returning
@@ -141,20 +141,20 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 		return "", ErrNoSuchTestSuite
 	}
 	// list networks to make sure not to duplicate
-	existing, err := manager.DockerClient.ListNetworks()
+	existing, err := manager.dockerClient.ListNetworks()
 	if err != nil {
 		return "", err
 	}
 	// check for existing networks with same name, and if exists, remove
 	for _, exists := range existing {
 		if exists.Name == networkName {
-			if err := manager.DockerClient.RemoveNetwork(exists.ID); err != nil {
+			if err := manager.dockerClient.RemoveNetwork(exists.ID); err != nil {
 				return "", err
 			}
 		}
 	}
 	// create network
-	network, err := manager.DockerClient.CreateNetwork(docker.CreateNetworkOptions{
+	network, err := manager.dockerClient.CreateNetwork(docker.CreateNetworkOptions{
 		Name:           networkName,
 		CheckDuplicate: true,
 		Attachable:     true,
@@ -162,10 +162,15 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName str
 	return network.ID, err
 }
 
-// PruneNetworks prunes all unused docker networks. // TODO this might be dangerous no?, maybe it's best to do a remove?
-func (manager *TestManager) PruneNetworks() error {
-	_, err := manager.DockerClient.PruneNetworks(docker.PruneNetworksOptions{})
-	return err
+// PruneNetworks prunes all unused docker networks.
+func (manager *TestManager) PruneNetworks() []error {
+	var errs []error
+	for _, network := range manager.networks {
+		if err := manager.dockerClient.RemoveNetwork(network); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	return errs
 }
 
 // ConnectContainerToNetwork connects the given container to the given network.
@@ -174,7 +179,7 @@ func (manager *TestManager) ConnectContainerToNetwork(testSuite TestSuiteID, net
 	if !ok {
 		return ErrNoSuchTestSuite
 	}
-	return manager.DockerClient.ConnectNetwork(networkID, docker.NetworkConnectionOptions{
+	return manager.dockerClient.ConnectNetwork(networkID, docker.NetworkConnectionOptions{
 		Container:      containerID,
 		EndpointConfig: nil, // TODO ?
 	})
@@ -190,7 +195,7 @@ func (manager *TestManager) GetNodeNetworkIP(testSuite TestSuiteID, networkID, n
 		return "", ErrNoSuchTestSuite
 	}
 
-	ipAddr, err := getContainerIP(manager.DockerClient, networkID, nodeID)
+	ipAddr, err := getContainerIP(manager.dockerClient, networkID, nodeID)
 	if err != nil {
 		return "", err
 	}

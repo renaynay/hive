@@ -168,7 +168,8 @@ func GenerateChainAndSave(gspec *core.Genesis, blockCount uint, path string, blo
 	chain, _ := core.GenerateChain(gspec.Config, genesis, eng, db, int(blockCount), blockModifier)
 
 	// Import the chain. This runs all block validation rules.
-	blockchain, err := core.NewBlockChain(db, nil, gspec.Config, eng, vm.Config{}, nil)
+	// (ethdb.Database, *core.CacheConfig, *params.ChainConfig, consensus.Engine, vm.Config, func(*types.Block) bool, *uint64)
+	blockchain, err := core.NewBlockChain(db, nil, gspec.Config, eng, vm.Config{}, nil, nil)
 	if err != nil {
 		log15.Crit("new chain error", "error", err)
 		return err

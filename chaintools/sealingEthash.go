@@ -26,13 +26,13 @@ func NewSealingEthash(config ethash.Config, notify []string, noverify bool) *Sea
 }
 
 // Finalize wraps ethhash engine
-func (e *SealingEthash) Finalize(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header) {
+func (e *SealingEthash) Finalize(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header) {
 	e.EthashEngine.Finalize(chain, header, state, txs, uncles)
 }
 
 // FinalizeAndAssemble implements consensus.Engine, accumulating the block and uncle rewards,
 // setting the final state and assembling the block.
-func (e *SealingEthash) FinalizeAndAssemble(chain consensus.ChainReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
+func (e *SealingEthash) FinalizeAndAssemble(chain consensus.ChainHeaderReader, header *types.Header, state *state.StateDB, txs []*types.Transaction, uncles []*types.Header, receipts []*types.Receipt) (*types.Block, error) {
 
 	finalizedBlock, err := e.EthashEngine.FinalizeAndAssemble(chain, header, state, txs, uncles, receipts)
 	if err != nil {
@@ -56,7 +56,7 @@ func (e *SealingEthash) Author(header *types.Header) (common.Address, error) {
 // VerifyHeader checks whether a header conforms to the consensus rules of a
 // given engine. Verifying the seal may be done optionally here, or explicitly
 // via the VerifySeal method.
-func (e *SealingEthash) VerifyHeader(chain consensus.ChainReader, header *types.Header, seal bool) error {
+func (e *SealingEthash) VerifyHeader(chain consensus.ChainHeaderReader, header *types.Header, seal bool) error {
 	return e.EthashEngine.VerifyHeader(chain, header, seal)
 }
 
@@ -64,7 +64,7 @@ func (e *SealingEthash) VerifyHeader(chain consensus.ChainReader, header *types.
 // concurrently. The method returns a quit channel to abort the operations and
 // a results channel to retrieve the async verifications (the order is that of
 // the input slice).
-func (e *SealingEthash) VerifyHeaders(chain consensus.ChainReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
+func (e *SealingEthash) VerifyHeaders(chain consensus.ChainHeaderReader, headers []*types.Header, seals []bool) (chan<- struct{}, <-chan error) {
 	return e.EthashEngine.VerifyHeaders(chain, headers, seals)
 }
 
@@ -76,13 +76,13 @@ func (e *SealingEthash) VerifyUncles(chain consensus.ChainReader, block *types.B
 
 // VerifySeal checks whether the crypto seal on a header is valid according to
 // the consensus rules of the given engine.
-func (e *SealingEthash) VerifySeal(chain consensus.ChainReader, header *types.Header) error {
+func (e *SealingEthash) VerifySeal(chain consensus.ChainHeaderReader, header *types.Header) error {
 	return e.EthashEngine.VerifySeal(chain, header)
 }
 
 // Prepare initializes the consensus fields of a block header according to the
 // rules of a particular engine. The changes are executed inline.
-func (e *SealingEthash) Prepare(chain consensus.ChainReader, header *types.Header) error {
+func (e *SealingEthash) Prepare(chain consensus.ChainHeaderReader, header *types.Header) error {
 	return e.EthashEngine.Prepare(chain, header)
 }
 
@@ -91,7 +91,7 @@ func (e *SealingEthash) Prepare(chain consensus.ChainReader, header *types.Heade
 //
 // Note, the method returns immediately and will send the result async. More
 // than one result may also be returned depending on the consensus algorithm.
-func (e *SealingEthash) Seal(chain consensus.ChainReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
+func (e *SealingEthash) Seal(chain consensus.ChainHeaderReader, block *types.Block, results chan<- *types.Block, stop <-chan struct{}) error {
 	panic("SealingEthash returns a sealed block from Finalize. Seal is not supported.")
 }
 
@@ -102,12 +102,12 @@ func (e *SealingEthash) SealHash(header *types.Header) common.Hash {
 
 // CalcDifficulty is the difficulty adjustment algorithm. It returns the difficulty
 // that a new block should have.
-func (e *SealingEthash) CalcDifficulty(chain consensus.ChainReader, time uint64, parent *types.Header) *big.Int {
+func (e *SealingEthash) CalcDifficulty(chain consensus.ChainHeaderReader, time uint64, parent *types.Header) *big.Int {
 	return e.EthashEngine.CalcDifficulty(chain, time, parent)
 }
 
 // APIs returns the RPC APIs this consensus engine provides.
-func (e *SealingEthash) APIs(chain consensus.ChainReader) []rpc.API {
+func (e *SealingEthash) APIs(chain consensus.ChainHeaderReader) []rpc.API {
 	return e.EthashEngine.APIs(chain)
 }
 

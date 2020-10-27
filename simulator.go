@@ -117,7 +117,11 @@ func simulate(simDuration int, simulator string, simulatorLabel string, logger l
 		if err := dockerClient.RemoveContainer(docker.RemoveContainerOptions{ID: sc.ID, Force: true}); err != nil {
 			slogger.Error("failed to delete simulator container", "error", err)
 		}
-		testManager.PruneNetworks()
+		if errs := testManager.PruneNetworks(); len(errs) > 0 {
+			for _, err := range errs {
+				slogger.Error("failed to remove network", "err", err)
+			}
+		}
 		slogger.Debug("docker networks pruned")
 	}()
 
