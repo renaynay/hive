@@ -104,13 +104,13 @@ func main() {
 			os.Exit(1)
 		}
 		// get sim bridge ip
-		simIPBridge, err := host.GetContainerNetworkIP(suiteID, "5717936aecb1", ourOwnContainerID) // TODO hardcoded ID of bridge, lets see if this works
+		simIPBridge, err := host.GetContainerNetworkIP(suiteID, "bridge", ourOwnContainerID) // TODO hardcoded ID of bridge, lets see if this works
 		if err != nil {
 			log.Error("could not get simulation network ip addresses", "err", err.Error())
 			os.Exit(1)
 		}
 		// get client bridge ip
-		clientIPBridge, err := host.GetContainerNetworkIP(suiteID, "5717936aecb1", containerID) // TODO hardcoded ID of bridge, lets see if this works
+		clientIPBridge, err := host.GetContainerNetworkIP(suiteID, "bridge", containerID) // TODO hardcoded ID of bridge, lets see if this works
 		if err != nil {
 			log.Error("could not get simulation network ip addresses", "err", err.Error())
 			os.Exit(1)
