@@ -206,18 +206,16 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 	return data, net.IP{}, nil, fmt.Errorf("no ip address returned: %v", data)
 }
 
-// GetSimContainerID sends a request to the hive server to get the
-// container ID of the simulation container.
-func (sim *host) GetSimContainerID(testSuite common.TestSuiteID) (string, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/simulator", sim.configuration.HostURI, testSuite))
+// ConnectSimToNetwork connects the simulation container to the given network.
+func (sim *host) ConnectSimToNetwork(testSuite common.TestSuiteID, networkID string) error {
+	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s/connectsim", sim.configuration.HostURI, testSuite, networkID), "application/json", nil)
 	if err != nil {
-		return "", err
+		return err
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("connectSimToNetwork request failed, status code %d", resp.StatusCode)
 	}
-	return string(body), nil
+	return nil
 }
 
 //GetPseudo starts a new pseudo-client with the specified parameters

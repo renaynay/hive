@@ -43,8 +43,8 @@ type TestSuiteHost interface {
 	//The input is used as environment variables in the new container
 	//Returns container id, ip and mac
 	GetPseudo(testSuite TestSuiteID, test TestID, parameters map[string]string) (string, net.IP, *string, error)
-	// GetSimContainerID gets the container ID of the simulation container.
-	GetSimContainerID(testSuite TestSuiteID) (string, error)
+	// ConnectSimToNetwork connects the simulation container to the given network.
+	ConnectSimToNetwork(testSuite TestSuiteID, networkID string) error
 	//Signal that a node is no longer required
 	KillNode(testSuite TestSuiteID, test TestID, node string) error
 }

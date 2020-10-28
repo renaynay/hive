@@ -188,10 +188,10 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
-	mux.Get("/testsuite/{suite}/simulator", getSimulatorID)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
+	mux.Post("/testsuite/{suite}/network/{network}/connectsim", connectSimToNetwork)
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -297,21 +297,24 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 	io.WriteString(w, fixedIP.URLv4())
 }
 
-// getSimulatorID gets the container ID of the simulation container.
-func getSimulatorID(w http.ResponseWriter, request *http.Request) {
+// connectSimToNetwork gets the container ID of the simulation container.
+func connectSimToNetwork(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
-		log15.Error("getSimulatorID failed", "error", err)
+		log15.Error("connectSimToNetwork failed", "error", err)
 		return
 	}
-	id, err := testManager.GetSimID(testSuite)
+	// get network ID
+	networkID := request.URL.Query().Get(":network")
+	log15.Info("Server - network create")
+	err = testManager.ConnectSimToNetwork(testSuite, networkID)
 	if err != nil {
-		log15.Error("getSimulatorID failed", "error", err)
+		log15.Error("connectSimToNetwork failed", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log15.Debug("sim container id", "id", id)
-	fmt.Fprint(w, id)
+	log15.Debug("successfully connected simulation container to network", "network", networkID)
+	fmt.Fprint(w, "success")
 }
 
 // networkCreate creates a docker network.

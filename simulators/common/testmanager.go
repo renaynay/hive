@@ -118,19 +118,18 @@ func (manager *TestManager) AddSimContainer(container *docker.Container) {
 	manager.simulationContainer = container
 }
 
-// GetSimID returns the container ID for the test manager's simulation
+// ConnectSimToNetwork returns the container ID for the test manager's simulation
 // container.
-func (manager *TestManager) GetSimID(testSuite TestSuiteID) (string, error) {
+func (manager *TestManager) ConnectSimToNetwork(testSuite TestSuiteID, networkID string) error {
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
-		return "", ErrNoSuchTestSuite
+		return ErrNoSuchTestSuite
 	}
 	// error out if simulation container not found
 	if manager.simulationContainer == nil {
-		return "", ErrNoSuchNode
+		return ErrNoSuchNode
 	}
-
-	return manager.simulationContainer.ID, nil
+	return manager.ConnectContainerToNetwork(testSuite, networkID, manager.simulationContainer.ID)
 }
 
 // CreateNetwork creates a docker network with the given network name, returning
