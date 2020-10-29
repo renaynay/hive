@@ -190,9 +190,10 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/test", testStart)
 	mux.Delete("/testsuite/{suite}", suiteEnd)
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
-	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
-	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
-	mux.Post("/testsuite/{suite}/connectsim/{network}", connectSimToNetwork)
+	mux.Delete("/testsuite/{suite}/network/{network}", networkRemove)
+	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", networkIPGet)
+	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect)
+	mux.Delete("/testsuite/{suite}/network/{network}/node/{node}", networkDisconnect)
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
@@ -332,12 +333,57 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 	id, err := testManager.CreateNetwork(testSuite, networkName)
 	if err != nil {
 		log15.Error("networkCreate unable to create network", "network", networkName, "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log15.Debug("network created", "network id", id, "network name", networkName)
+	log15.Debug("network created", "name", networkName, "id", id)
 
-	fmt.Fprint(w, id) // TODO ??
+	fmt.Fprint(w, id)
+}
+
+// networkRemove removes a docker network.
+func networkRemove(w http.ResponseWriter, request *http.Request) {
+	_, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("networkRemove failed", "error", err)
+		return
+	}
+
+	networkID := request.URL.Query().Get(":network")
+	log15.Info("Server - network remove")
+
+	err = testManager.RemoveNetwork(networkID)
+	if err != nil {
+		log15.Error("networkRemove unable to remove network", "network", networkID, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	log15.Debug("network removed", "id", networkID)
+
+	fmt.Fprint(w, "success")
+}
+
+// networkIPGet gets the IP address of a container on a network.
+func networkIPGet(w http.ResponseWriter, request *http.Request) {
+	testSuite, err := checkSuiteRequest(request, w)
+	if err != nil {
+		log15.Error("networkIPGet failed", "error", err)
+		return
+	}
+
+	node := request.URL.Query().Get(":node")
+	networkID := request.URL.Query().Get(":network")
+	log15.Info("Server - node network IP get", "network", networkID)
+
+	ipAddr, err := testManager.ContainerIP(testSuite, networkID, node)
+	if err != nil {
+		log15.Error("networkIPGet unable to get networkIPs", "node", node, "error", err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	log15.Debug("got node IP", "node", node, "ip addr", ipAddr)
+	fmt.Fprint(w, ipAddr)
 }
 
 // networkConnect connects a container to a network.
@@ -348,42 +394,38 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	networkName := request.URL.Query().Get(":network")
-	containerName := request.URL.Query().Get(":node")
+	networkID := request.URL.Query().Get(":network")
+	containerID := request.URL.Query().Get(":node")
 	log15.Info("Server - network connect")
 
-	if err := testManager.ConnectContainerToNetwork(testSuite, networkName, containerName); err != nil {
-		log15.Error("networkCreate unable to connect container to network", "network", networkName, "container", containerName, "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest) // TODO right err?
+	if err := testManager.ConnectContainer(testSuite, networkID, containerID); err != nil {
+		log15.Error("networkCreate unable to connect container to network", "network", networkID, "container", containerID, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log15.Debug("container connected to network", "network", networkName, "container", containerName)
-
-	fmt.Fprint(w, "success") // TODO ?
+	log15.Debug("container connected to network", "network", networkID, "container", containerID)
+	fmt.Fprint(w, "success")
 }
 
-// nodeNetworkIPGet gets the IP address of a container on a network.
-func nodeNetworkIPGet(w http.ResponseWriter, request *http.Request) {
+// networkDisconnect disconnects a container from a network.
+func networkDisconnect(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
-		log15.Error("nodeNetworkIPGet failed", "error", err)
+		log15.Error("networkDisconnect failed", "error", err)
 		return
 	}
 
-	node := request.URL.Query().Get(":node")
 	networkID := request.URL.Query().Get(":network")
-	log15.Info("Server - node network IP get", "network", networkID)
+	containerID := request.URL.Query().Get(":node")
+	log15.Info("Server - network disconnect")
 
-	ipAddr, err := testManager.GetNodeNetworkIP(common.TestSuiteID(testSuite), networkID, node)
-	if err != nil {
-		log15.Error("nodeNetworkIPGet unable to get networkIPs", "node", node, "error", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+	if err := testManager.DisconnectContainer(testSuite, networkID, containerID); err != nil {
+		log15.Error("networkDisconnect unable to disconnect container from network", "network", networkID, "container", containerID, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	log15.Debug("got node IP", "node", node, "ip addr", ipAddr)
-
-	fmt.Fprint(w, ipAddr)
+	log15.Debug("container disconnected from network", "network", networkID, "container", containerID)
+	fmt.Fprint(w, "success")
 }
 
 //start a new node as part of a test

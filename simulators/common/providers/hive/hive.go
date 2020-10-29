@@ -62,10 +62,20 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 	return string(body), nil
 }
 
-// ConnectContainerToNetwork sends a request to the hive server to connect the given
+// RemoveNetwork sends a request to the hive server to remove the given network.
+func (sim *host) RemoveNetwork(testSuite common.TestSuiteID, networkID string) error {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkID), nil)
+	if err != nil {
+		return err
+	}
+	_, err = http.DefaultClient.Do(req)
+	return err
+}
+
+// ConnectContainer sends a request to the hive server to connect the given
 // container to the given network.
-func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, networkName, containerName string) error {
-	endpoint := fmt.Sprintf("%s/testsuite/%s/node/%s/network/%s", sim.configuration.HostURI, testSuite, containerName, networkName)
+func (sim *host) ConnectContainer(testSuite common.TestSuiteID, networkID, containerID string) error {
+	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite, networkID, containerID)
 	resp, err := http.Post(endpoint, "application/json", nil)
 	if err != nil {
 		return err
@@ -76,10 +86,22 @@ func (sim *host) ConnectContainerToNetwork(testSuite common.TestSuiteID, network
 	return nil
 }
 
+// DisconnectContainer sends a request to the hive server to disconnect the given
+// container from the given network.
+func (sim *host) DisconnectContainer(testSuite common.TestSuiteID, networkID, containerID string) error {
+	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite, networkID, containerID)
+	req, err := http.NewRequest(http.MethodDelete, endpoint, nil)
+	if err != nil {
+		return err
+	}
+	_, err = http.DefaultClient.Do(req)
+	return err
+}
+
 // GetContainerNetworkIP sends a request to the hive server to get the IP address
 // of the given container on the given network.
-func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkID, node string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkID, node))
+func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkID, containerID string) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite.String(), networkID, containerID))
 	if err != nil {
 		return "", err
 	}
@@ -204,18 +226,6 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 		return idip[0], net.ParseIP(idip[1]), &idip[2], nil
 	}
 	return data, net.IP{}, nil, fmt.Errorf("no ip address returned: %v", data)
-}
-
-// ConnectSimToNetwork connects the simulation container to the given network.
-func (sim *host) ConnectSimToNetwork(testSuite common.TestSuiteID, networkID string) error {
-	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/connectsim/%s", sim.configuration.HostURI, testSuite, networkID), "application/json", nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("connectSimToNetwork request failed, status code %d", resp.StatusCode)
-	}
-	return nil
 }
 
 //GetPseudo starts a new pseudo-client with the specified parameters
