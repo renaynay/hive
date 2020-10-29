@@ -306,7 +306,7 @@ func connectSimToNetwork(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 	// get network ID
-	networkID := request.URL.Query().Get(":connectsim")
+	networkID := request.URL.Query().Get(":network")
 	log15.Info("Server - connect simulation container to network")
 	err = testManager.ConnectSimToNetwork(testSuite, networkID)
 	if err != nil {
