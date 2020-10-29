@@ -40,6 +40,7 @@ func NewTestManager(outputPath string, testLimiter int, killNodeCallback func(te
 		runningTestSuites: make(map[TestSuiteID]*TestSuite),
 		runningTestCases:  make(map[TestID]*TestCase),
 		dockerClient:      client,
+		networks:          make(map[string]string),
 	}
 }
 
