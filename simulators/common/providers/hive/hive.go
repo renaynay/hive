@@ -208,7 +208,7 @@ func (sim *host) GetNode(testSuite common.TestSuiteID, test common.TestID, param
 
 // ConnectSimToNetwork connects the simulation container to the given network.
 func (sim *host) ConnectSimToNetwork(testSuite common.TestSuiteID, networkID string) error {
-	resp, err := http.Post(fmt.Sprintf("%s/testsuite/connectsim/%s", sim.configuration.HostURI, testSuite, networkID), "application/json", nil)
+	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/connectsim/%s", sim.configuration.HostURI, testSuite, networkID), "application/json", nil)
 	if err != nil {
 		return err
 	}
