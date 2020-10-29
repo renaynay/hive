@@ -192,7 +192,7 @@ func startTestSuiteAPI() error {
 	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
 	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", nodeNetworkIPGet)
 	mux.Post("/testsuite/{suite}/node/{node}/network/{network}", networkConnect) // TODO weird endpoint, but I guess the length of the network ID was making it hit the networkCreate path?
-	mux.Post("/testsuite/{suite}/network/{network}/connectsim", connectSimToNetwork)
+	mux.Post("/testsuite/{suite}/connectsim/{network}", connectSimToNetwork)
 	mux.Post("/testsuite", suiteStart)
 	mux.Get("/clients", clientTypesGet)
 	// Start the API webserver for simulators to coordinate with
