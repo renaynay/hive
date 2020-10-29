@@ -124,8 +124,9 @@ func simulate(simDuration int, simulator string, simulatorLabel string, logger l
 			for _, err := range errs {
 				slogger.Error("failed to remove network", "err", err)
 			}
+		} else {
+			slogger.Debug("docker networks pruned")
 		}
-		slogger.Debug("docker networks pruned")
 	}()
 
 	// Start the tester container and wait until it finishes
@@ -305,7 +306,7 @@ func connectSimToNetwork(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 	// get network ID
-	networkID := request.URL.Query().Get(":network")
+	networkID := request.URL.Query().Get(":connectsim")
 	log15.Info("Server - connect simulation container to network")
 	err = testManager.ConnectSimToNetwork(testSuite, networkID)
 	if err != nil {
