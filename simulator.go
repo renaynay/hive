@@ -213,12 +213,9 @@ func startTestSuiteAPI() error {
 }
 
 func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.TestSuiteID, error) {
-	if err := request.ParseForm(); err != nil {
-		http.Error(w, "cannot parse request form", http.StatusBadRequest)
-		return 0, fmt.Errorf("cannont parse request form")
-	}
+	path := mux.Vars(request)
+	suite := path["suite"]
 
-	suite := request.Form.Get("suite")
 	testSuite, err := strconv.Atoi(suite)
 	if err != nil {
 		http.Error(w, "invalid test suite", http.StatusBadRequest)
