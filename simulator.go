@@ -213,8 +213,7 @@ func startTestSuiteAPI() error {
 }
 
 func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.TestSuiteID, error) {
-	path := mux.Vars(request)
-	suite := path["suite"]
+	suite := mux.Vars(request)["suite"]
 
 	testSuite, err := strconv.Atoi(suite)
 	if err != nil {
@@ -230,7 +229,8 @@ func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.Tes
 }
 
 func checkTestRequest(request *http.Request, w http.ResponseWriter) (common.TestID, bool) {
-	testString := request.Form.Get("test")
+	testString := mux.Vars(request)["test"]
+
 	testCase, err := strconv.Atoi(testString)
 	if err != nil {
 		log15.Error("invalid test case", "identifier", testString)
@@ -248,13 +248,6 @@ func checkTestRequest(request *http.Request, w http.ResponseWriter) (common.Test
 
 // nodeInfoGet tries to execute the mandatory enode.sh , which returns the enode id
 func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		log15.Error("failed to parse http request form", "err", err)
-		http.Error(w, "failed to parse form", http.StatusBadRequest)
-		return
-	}
-
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("nodeInfoGet failed", "error", err)
@@ -266,7 +259,7 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	node := request.Form.Get("node")
+	node := mux.Vars(request)["node"]
 	log15.Info("Server - node info get")
 
 	nodeInfo, err := testManager.GetNodeInfo(common.TestSuiteID(testSuite), common.TestID(testCase), node)
@@ -337,7 +330,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	networkName := request.URL.Query().Get(":network")
+	networkName := mux.Vars(request)["network"]
 	log15.Info("Server - network create")
 
 	id, err := testManager.CreateNetwork(testSuite, networkName)
@@ -359,7 +352,7 @@ func networkRemove(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	networkID := request.URL.Query().Get(":network")
+	networkID := mux.Vars(request)["network"]
 	log15.Info("Server - network remove")
 
 	err = testManager.RemoveNetwork(networkID)
@@ -381,8 +374,8 @@ func networkIPGet(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	node := request.URL.Query().Get(":node")
-	networkID := request.URL.Query().Get(":network")
+	node := mux.Vars(request)["node"]
+	networkID := mux.Vars(request)["network"]
 	log15.Info("Server - node network IP get", "network", networkID)
 
 	ipAddr, err := testManager.ContainerIP(testSuite, networkID, node)
@@ -404,8 +397,8 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	networkID := request.URL.Query().Get(":network")
-	containerID := request.URL.Query().Get(":node")
+	networkID := mux.Vars(request)["network"]
+	containerID := mux.Vars(request)["node"]
 	log15.Info("Server - network connect")
 
 	if err := testManager.ConnectContainer(testSuite, networkID, containerID); err != nil {
@@ -425,8 +418,8 @@ func networkDisconnect(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	networkID := request.URL.Query().Get(":network")
-	containerID := request.URL.Query().Get(":node")
+	networkID := mux.Vars(request)["network"]
+	containerID := mux.Vars(request)["node"]
 	log15.Info("Server - network disconnect")
 
 	if err := testManager.DisconnectContainer(testSuite, networkID, containerID); err != nil {
@@ -440,13 +433,6 @@ func networkDisconnect(w http.ResponseWriter, request *http.Request) {
 
 //start a new node as part of a test
 func nodeStart(w http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		log15.Error("failed to parse http request form", "err", err)
-		http.Error(w, "failed to parse form", http.StatusBadRequest)
-		return
-	}
-
 	if _, err := checkSuiteRequest(request, w); err != nil {
 		log15.Error("nodeStart failed", "error", err)
 		return
@@ -480,13 +466,6 @@ func nodeStart(w http.ResponseWriter, request *http.Request) {
 
 //start a pseudo client and register it as part of a test
 func pseudoStart(w http.ResponseWriter, request *http.Request) {
-	err := request.ParseForm()
-	if err != nil {
-		log15.Error("failed to parse http request form", "err", err)
-		http.Error(w, "failed to parse form", http.StatusBadRequest)
-		return
-	}
-
 	if _, err := checkSuiteRequest(request, w); err != nil {
 		log15.Error("pseudoStart failed", "error", err)
 		return
@@ -525,7 +504,6 @@ func killNodeHandler(testSuite common.TestSuiteID, test common.TestID, node stri
 }
 
 func nodeKill(w http.ResponseWriter, request *http.Request) {
-
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Debug("nodeKill failed", "error", err)
@@ -536,7 +514,7 @@ func nodeKill(w http.ResponseWriter, request *http.Request) {
 		log15.Error("nodeKill failed")
 		return
 	}
-	node := request.URL.Query().Get(":node")
+	node := mux.Vars(request)["node"]
 	err = killNodeHandler(testSuite, testCase, node)
 	if err != nil {
 		log15.Error("nodeKill unable to delete node", "node", node, "error", err)
