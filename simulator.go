@@ -17,7 +17,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/hive/simulators/common"
-	mux "github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"gopkg.in/inconshreveable/log15.v2"

@@ -29,6 +29,7 @@ func main() {
 		if err != nil {
 			fatalf("failed to start test: %s", err.Error())
 		}
+
 		env := map[string]string{
 			"CLIENT": client,
 		}
@@ -38,6 +39,13 @@ func main() {
 		if err != nil {
 			fatalf("could not get node: %s", err.Error())
 		}
+
+		defer func() {
+			host.KillNode(suiteID, testID, containerID)
+			host.EndTest(suiteID, testID, nil, nil) // &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s", clientIP)} // TODO
+			host.EndTestSuite(suiteID)
+		}()
+
 		// create network1
 		networkID, err := host.CreateNetwork(suiteID, "network1")
 		if err != nil {
@@ -79,10 +87,6 @@ func main() {
 		if err := host.RemoveNetwork(suiteID, networkID); err != nil {
 			fatalf("could not remove network: %s", err.Error())
 		}
-
-		host.KillNode(suiteID, testID, containerID)
-		host.EndTest(suiteID, testID, nil, nil) // &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s", clientIP)} // TODO
-		host.EndTestSuite(suiteID)
 	}
 }
 
