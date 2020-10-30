@@ -213,6 +213,11 @@ func startTestSuiteAPI() error {
 }
 
 func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.TestSuiteID, error) {
+	if err := request.ParseForm(); err != nil {
+		http.Error(w, "cannot parse request form", http.StatusBadRequest)
+		return 0, fmt.Errorf("cannont parse request form")
+	}
+
 	suite := request.Form.Get("suite")
 	testSuite, err := strconv.Atoi(suite)
 	if err != nil {
@@ -609,14 +614,12 @@ func parseForm(r *http.Request) map[string]string {
 }
 
 func testStart(w http.ResponseWriter, request *http.Request) {
-	dict := parseForm(request)
-	// check suite request after parsing form
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("testStart fail", "error", err)
 		return
 	}
-	// start test
+	dict := parseForm(request)
 	testID, err := testManager.StartTest(testSuite, dict["name"], dict["description"])
 	if err != nil {
 		log15.Error("testStart unable to start test case", "name", dict["name"], "error", err)
