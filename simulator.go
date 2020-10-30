@@ -213,11 +213,11 @@ func startTestSuiteAPI() error {
 }
 
 func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.TestSuiteID, error) {
-	testSuiteString := request.URL.Query().Get(":suite")
-	testSuite, err := strconv.Atoi(testSuiteString)
+	suite := request.Form.Get("suite")
+	testSuite, err := strconv.Atoi(suite)
 	if err != nil {
 		http.Error(w, "invalid test suite", http.StatusBadRequest)
-		return 0, fmt.Errorf("invalid test suite: %v", testSuiteString)
+		return 0, fmt.Errorf("invalid test suite: %v", suite)
 	}
 	testSuiteID := common.TestSuiteID(testSuite)
 	if _, running := testManager.IsTestSuiteRunning(testSuiteID); !running {
@@ -228,7 +228,7 @@ func checkSuiteRequest(request *http.Request, w http.ResponseWriter) (common.Tes
 }
 
 func checkTestRequest(request *http.Request, w http.ResponseWriter) (common.TestID, bool) {
-	testString := request.URL.Query().Get(":test")
+	testString := request.Form.Get("test")
 	testCase, err := strconv.Atoi(testString)
 	if err != nil {
 		log15.Error("invalid test case", "identifier", testString)
@@ -246,6 +246,13 @@ func checkTestRequest(request *http.Request, w http.ResponseWriter) (common.Test
 
 // nodeInfoGet tries to execute the mandatory enode.sh , which returns the enode id
 func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		log15.Error("failed to parse http request form", "err", err)
+		http.Error(w, "failed to parse form", http.StatusBadRequest)
+		return
+	}
+
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("nodeInfoGet failed", "error", err)
@@ -256,7 +263,8 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 		log15.Info("Server - node info get, test request failed")
 		return
 	}
-	node := request.URL.Query().Get(":node")
+
+	node := request.Form.Get("node")
 	log15.Info("Server - node info get")
 
 	nodeInfo, err := testManager.GetNodeInfo(common.TestSuiteID(testSuite), common.TestID(testCase), node)
@@ -430,6 +438,13 @@ func networkDisconnect(w http.ResponseWriter, request *http.Request) {
 
 //start a new node as part of a test
 func nodeStart(w http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		log15.Error("failed to parse http request form", "err", err)
+		http.Error(w, "failed to parse form", http.StatusBadRequest)
+		return
+	}
+
 	if _, err := checkSuiteRequest(request, w); err != nil {
 		log15.Error("nodeStart failed", "error", err)
 		return
@@ -463,6 +478,13 @@ func nodeStart(w http.ResponseWriter, request *http.Request) {
 
 //start a pseudo client and register it as part of a test
 func pseudoStart(w http.ResponseWriter, request *http.Request) {
+	err := request.ParseForm()
+	if err != nil {
+		log15.Error("failed to parse http request form", "err", err)
+		http.Error(w, "failed to parse form", http.StatusBadRequest)
+		return
+	}
+
 	if _, err := checkSuiteRequest(request, w); err != nil {
 		log15.Error("pseudoStart failed", "error", err)
 		return
