@@ -609,12 +609,14 @@ func parseForm(r *http.Request) map[string]string {
 }
 
 func testStart(w http.ResponseWriter, request *http.Request) {
+	dict := parseForm(request)
+	// check suite request after parsing form
 	testSuite, err := checkSuiteRequest(request, w)
 	if err != nil {
 		log15.Error("testStart fail", "error", err)
 		return
 	}
-	dict := parseForm(request)
+	// start test
 	testID, err := testManager.StartTest(testSuite, dict["name"], dict["description"])
 	if err != nil {
 		log15.Error("testStart unable to start test case", "name", dict["name"], "error", err)
