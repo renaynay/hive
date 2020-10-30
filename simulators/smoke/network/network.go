@@ -144,7 +144,7 @@ func main() {
 
 func endTest(result *common.TestResult) {
 	host.KillNode(suiteID, testID, containerID)
-	host.EndTest(suiteID, testID, result, nil) // &common.TestResult{Pass: true, Details: fmt.Sprint("clientIP: %s", clientIP)} // TODO
+	host.EndTest(suiteID, testID, result, nil)
 	host.EndTestSuite(suiteID)
 }
 
