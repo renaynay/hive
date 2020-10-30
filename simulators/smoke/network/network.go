@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
+	"net"
 	"os"
-
-	"gopkg.in/inconshreveable/log15.v2"
 
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/hive/simulators/common/providers/hive"
@@ -44,11 +43,6 @@ func main() {
 		if err != nil {
 			fatalf("could not create network: %s", err.Error())
 		}
-		//// create network2
-		//network2ID, err := host.CreateNetwork(suiteID, "network2")
-		//if err != nil {
-		//	fatalf("could not create network: %s", err.Error())
-		//}
 		// connect client to network1
 		if err := host.ConnectContainer(suiteID, networkID, containerID); err != nil {
 			fatalf("could not connect container to network: %s", err.Error())
@@ -57,26 +51,22 @@ func main() {
 		if err := host.ConnectContainer(suiteID, networkID, "simulation"); err != nil {
 			fatalf("could not connect container to network: %s", err.Error())
 		}
-		//// connect sim to network2
-		//if err := host.ConnectSimToNetwork(suiteID, network2ID); err != nil {
-		//	fatalf("could not connect container to network: %s", err.Error())
-		//}
 		// get client ip
 		clientIP, err := host.GetContainerNetworkIP(suiteID, networkID, containerID)
 		if err != nil {
-			fatalf("could not get client network ip addresses: %s", err.Error())
+			fatalf("could not get client network ip address: %s", err.Error())
 		}
-		// get sim ip // TODO necessary?
-		simIP, err := host.GetContainerNetworkIP(suiteID, networkID, "simulation")
+		_, err = host.GetContainerNetworkIP(suiteID, networkID, "simulation")
 		if err != nil {
-			fatalf("could not get client network ip addresses: %s", err.Error())
+			fatalf("could not get client network ip address for simulation container: %s", err.Error())
 		}
 
 		// TODO dial IPs
+		_, err = net.Dial("tcp", fmt.Sprintf("%s:%d", clientIP, 8545))
+		if err != nil {
+			fatalf("failed to dial client: %s", err.Error())
+		}
 
-		log15.Crit("got bridge IP: ", "ip", ip)
-		log15.Crit("got network1 ip for client", "ip", clientIP)
-		log15.Crit("got network1 ip for sim", "sim", simIP)
 		// disconnect client from network1
 		if err := host.DisconnectContainer(suiteID, networkID, containerID); err != nil {
 			fatalf("could not disconnect container from network: %s", err.Error())
