@@ -17,7 +17,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/hive/simulators/common"
-	"github.com/gorilla/pat"
+	mux "github.com/gorilla/mux"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"gopkg.in/inconshreveable/log15.v2"
@@ -181,21 +181,21 @@ func startTestSuiteAPI() error {
 	// Serve connections until the listener is terminated
 	log15.Debug("starting simulator API server")
 
-	var mux *pat.Router = pat.New()
-	mux.Get("/testsuite/{suite}/test/{test}/node/{node}", nodeInfoGet)
-	mux.Post("/testsuite/{suite}/test/{test}/node", nodeStart)
-	mux.Post("/testsuite/{suite}/test/{test}/pseudo", pseudoStart)
-	mux.Delete("/testsuite/{suite}/test/{test}/node/{node}", nodeKill)
-	mux.Post("/testsuite/{suite}/test/{test}", testDelete) //post because the delete http verb does not always support a message body
-	mux.Post("/testsuite/{suite}/test", testStart)
-	mux.Delete("/testsuite/{suite}", suiteEnd)
-	mux.Post("/testsuite/{suite}/network/{network}", networkCreate)
-	mux.Delete("/testsuite/{suite}/network/{network}", networkRemove)
-	mux.Get("/testsuite/{suite}/network/{network}/node/{node}", networkIPGet)
-	mux.Post("/testsuite/{suite}/network/{network}/node/{node}", networkConnect)
-	mux.Delete("/testsuite/{suite}/network/{network}/node/{node}", networkDisconnect)
-	mux.Post("/testsuite", suiteStart)
-	mux.Get("/clients", clientTypesGet)
+	router := mux.NewRouter()
+	router.HandleFunc("/clients", clientTypesGet).Methods("GET")
+	router.HandleFunc("/testsuite/{suite}/test/{test}/node/{node}", nodeInfoGet).Methods("GET")
+	router.HandleFunc("/testsuite/{suite}/test/{test}/node", nodeStart).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}/test/{test}/node/{node}", nodeKill).Methods("DELETE")
+	router.HandleFunc("/testsuite/{suite}/test/{test}/pseudo", pseudoStart).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}/test", testStart).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}/test/{test}", testDelete).Methods("POST") //post because the delete http verb does not always support a message body // TODO ?
+	router.HandleFunc("/testsuite", suiteStart).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}", suiteEnd).Methods("DELETE")
+	router.HandleFunc("/testsuite/{suite}/network/{network}", networkCreate).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}/network/{network}", networkRemove).Methods("DELETE")
+	router.HandleFunc("/testsuite/{suite}/network/{network}/node/{node}", networkIPGet).Methods("GET")
+	router.HandleFunc("/testsuite/{suite}/network/{network}/node/{node}", networkConnect).Methods("POST")
+	router.HandleFunc("/testsuite/{suite}/network/{network}/node/{node}", networkDisconnect).Methods("DELETE")
 	// Start the API webserver for simulators to coordinate with
 	addr, _ := net.ResolveTCPAddr("tcp4", fmt.Sprintf("%s:0", bridge))
 	listener, err := net.ListenTCP("tcp4", addr)
@@ -205,7 +205,7 @@ func startTestSuiteAPI() error {
 	}
 	simListenerAddress = listener.Addr().String()
 	log15.Debug("listening for simulator commands", "ip", bridge, "port", listener.Addr().(*net.TCPAddr).Port)
-	server = &http.Server{Handler: mux}
+	server = &http.Server{Handler: router}
 
 	go server.Serve(listener)
 

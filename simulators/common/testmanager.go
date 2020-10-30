@@ -187,8 +187,8 @@ func (manager *TestManager) RemoveNetwork(networkID string) error {
 // PruneNetworks prunes all unused docker network that were started by the test suite.
 func (manager *TestManager) PruneNetworks() []error {
 	var errs []error
-	for _, network := range manager.networks {
-		if err := manager.RemoveNetwork(network); err != nil {
+	for id, _ := range manager.networks {
+		if err := manager.RemoveNetwork(id); err != nil {
 			errs = append(errs, err)
 		}
 	}
