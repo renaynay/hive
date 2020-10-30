@@ -188,7 +188,7 @@ func startTestSuiteAPI() error {
 	router.HandleFunc("/testsuite/{suite}/test/{test}/node/{node}", nodeKill).Methods("DELETE")
 	router.HandleFunc("/testsuite/{suite}/test/{test}/pseudo", pseudoStart).Methods("POST")
 	router.HandleFunc("/testsuite/{suite}/test", testStart).Methods("POST")
-	router.HandleFunc("/testsuite/{suite}/test/{test}", testDelete).Methods("POST") //post because the delete http verb does not always support a message body // TODO ?
+	router.HandleFunc("/testsuite/{suite}/test/{test}", testDelete).Methods("POST") //post because the delete http verb does not always support a message body
 	router.HandleFunc("/testsuite", suiteStart).Methods("POST")
 	router.HandleFunc("/testsuite/{suite}", suiteEnd).Methods("DELETE")
 	router.HandleFunc("/testsuite/{suite}/network/{network}", networkCreate).Methods("POST")
@@ -315,7 +315,7 @@ func networkCreate(w http.ResponseWriter, request *http.Request) {
 
 	id, err := testManager.CreateNetwork(testSuite, networkName)
 	if err != nil {
-		log15.Error("networkCreate unable to create network", "network", networkName, "error", err)
+		log15.Error("failed to create network", "network", networkName, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -337,7 +337,7 @@ func networkRemove(w http.ResponseWriter, request *http.Request) {
 
 	err = testManager.RemoveNetwork(networkID)
 	if err != nil {
-		log15.Error("networkRemove unable to remove network", "network", networkID, "error", err)
+		log15.Error("failed to remove network", "network", networkID, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -360,8 +360,8 @@ func networkIPGet(w http.ResponseWriter, request *http.Request) {
 
 	ipAddr, err := testManager.ContainerIP(testSuite, networkID, node)
 	if err != nil {
-		log15.Error("networkIPGet unable to get networkIPs", "node", node, "error", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+		log15.Error("failed to get networkIPs", "node", node, "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -382,7 +382,7 @@ func networkConnect(w http.ResponseWriter, request *http.Request) {
 	log15.Info("Server - network connect")
 
 	if err := testManager.ConnectContainer(testSuite, networkID, containerID); err != nil {
-		log15.Error("networkCreate unable to connect container to network", "network", networkID, "container", containerID, "error", err)
+		log15.Error("failed to connect container to network", "network", networkID, "container", containerID, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -403,7 +403,7 @@ func networkDisconnect(w http.ResponseWriter, request *http.Request) {
 	log15.Info("Server - network disconnect")
 
 	if err := testManager.DisconnectContainer(testSuite, networkID, containerID); err != nil {
-		log15.Error("networkDisconnect unable to disconnect container from network", "network", networkID, "container", containerID, "error", err)
+		log15.Error("failed to disconnect container from network", "network", networkID, "container", containerID, "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}

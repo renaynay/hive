@@ -92,6 +92,7 @@ func main() {
 			})
 			fatalf("could not get client network ip address: %s", err.Error())
 		}
+		// make sure get container IP endpoint works with simulation container
 		_, err = host.GetContainerNetworkIP(suiteID, networkID, "simulation")
 		if err != nil {
 			endTest(&common.TestResult{
@@ -100,8 +101,7 @@ func main() {
 			})
 			fatalf("could not get client network ip address for simulation container: %s", err.Error())
 		}
-
-		// TODO dial IPs
+		// dial client
 		_, err = net.Dial("tcp", fmt.Sprintf("%s:%d", clientIP, 8545))
 		if err != nil {
 			endTest(&common.TestResult{
@@ -110,7 +110,6 @@ func main() {
 			})
 			fatalf("failed to dial client: %s", err.Error())
 		}
-
 		// disconnect client from network1
 		if err := host.DisconnectContainer(suiteID, networkID, containerID); err != nil {
 			endTest(&common.TestResult{

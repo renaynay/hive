@@ -120,22 +120,6 @@ func (manager *TestManager) AddSimContainer(container *docker.Container) {
 	manager.simulationContainer = container
 }
 
-// ConnectSimToNetwork returns the container ID for the test manager's simulation
-// container.
-func (manager *TestManager) ConnectSimToNetwork(testSuite TestSuiteID, networkID string) error {
-	_, ok := manager.IsTestSuiteRunning(testSuite)
-	if !ok {
-		return ErrNoSuchTestSuite
-	}
-	manager.networkMutex.RLock()
-	defer manager.networkMutex.RUnlock()
-	// error out if simulation container not found
-	if manager.simulationContainer == nil {
-		return ErrNoSuchNode
-	}
-	return manager.ConnectContainer(testSuite, networkID, manager.simulationContainer.ID)
-}
-
 // CreateNetwork creates a docker network with the given network name, returning
 // the network ID upon success.
 func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) (string, error) {
@@ -197,8 +181,8 @@ func (manager *TestManager) PruneNetworks() []error {
 
 // ContainerIP gets the IP address of the given container on the given network.
 func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkID, containerID string) (string, error) {
-	manager.networkMutex.Lock()
-	defer manager.networkMutex.Unlock()
+	manager.networkMutex.RLock()
+	defer manager.networkMutex.RUnlock()
 
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
@@ -237,6 +221,9 @@ func getContainerIP(dockerClient *docker.Client, networkID, container string) (s
 
 // ConnectContainer connects the given container to the given network.
 func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkID, containerID string) error {
+	manager.networkMutex.RLock()
+	defer manager.networkMutex.RUnlock()
+
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return ErrNoSuchTestSuite
@@ -253,6 +240,9 @@ func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkID, c
 
 // DisconnectContainer disconnects the given container from the given network.
 func (manager *TestManager) DisconnectContainer(testSuite TestSuiteID, networkID, containerID string) error {
+	manager.networkMutex.RLock()
+	defer manager.networkMutex.RUnlock()
+
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return ErrNoSuchTestSuite

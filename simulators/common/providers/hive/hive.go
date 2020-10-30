@@ -76,14 +76,8 @@ func (sim *host) RemoveNetwork(testSuite common.TestSuiteID, networkID string) e
 // container to the given network.
 func (sim *host) ConnectContainer(testSuite common.TestSuiteID, networkID, containerID string) error {
 	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/node/%s", sim.configuration.HostURI, testSuite, networkID, containerID)
-	resp, err := http.Post(endpoint, "application/json", nil)
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != 200 { // TODO better err check?
-		return fmt.Errorf("error posting connect container to network request, status code %d", resp.StatusCode)
-	}
-	return nil
+	_, err := http.Post(endpoint, "application/json", nil)
+	return err
 }
 
 // DisconnectContainer sends a request to the hive server to disconnect the given
