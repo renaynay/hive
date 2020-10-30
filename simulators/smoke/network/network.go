@@ -34,7 +34,7 @@ func main() {
 		}
 		files := map[string]string{}
 		// get client
-		containerID, ip, _, err := host.GetNode(suiteID, testID, env, files)
+		containerID, _, _, err := host.GetNode(suiteID, testID, env, files)
 		if err != nil {
 			fatalf("could not get node: %s", err.Error())
 		}
