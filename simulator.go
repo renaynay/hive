@@ -302,26 +302,6 @@ func nodeInfoGet(w http.ResponseWriter, request *http.Request) {
 	io.WriteString(w, fixedIP.URLv4())
 }
 
-// connectSimToNetwork gets the container ID of the simulation container.
-func connectSimToNetwork(w http.ResponseWriter, request *http.Request) {
-	testSuite, err := checkSuiteRequest(request, w)
-	if err != nil {
-		log15.Error("connectSimToNetwork failed", "error", err)
-		return
-	}
-	// get network ID
-	networkID := request.URL.Query().Get(":network")
-	log15.Info("Server - connect simulation container to network")
-	err = testManager.ConnectSimToNetwork(testSuite, networkID)
-	if err != nil {
-		log15.Error("connectSimToNetwork failed", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	log15.Debug("successfully connected simulation container to network", "network", networkID)
-	fmt.Fprint(w, "success")
-}
-
 // networkCreate creates a docker network.
 func networkCreate(w http.ResponseWriter, request *http.Request) {
 	testSuite, err := checkSuiteRequest(request, w)
