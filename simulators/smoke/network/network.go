@@ -135,6 +135,10 @@ func main() {
 			})
 			fatalf("could not remove network: %s", err.Error())
 		}
+		endTest(&common.TestResult{
+			Pass:    true,
+			Details: "success",
+		})
 	}
 }
 
