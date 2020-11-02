@@ -16,4 +16,4 @@ RUN cd
 RUN git clone --depth 1 https://github.com/ethereum/go-ethereum.git
 RUN cd go-ethereum && go build -v -o ../devp2p ./cmd/devp2p
 
-ENTRYPOINT ["./version4"]
+ENTRYPOINT ["./discv4"]
