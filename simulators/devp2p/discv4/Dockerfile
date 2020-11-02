@@ -5,12 +5,12 @@ RUN apk add --no-cache git make gcc musl-dev linux-headers bash  curl jq
 RUN GOPATH=/go
 
 ADD /common /go/src/github.com/ethereum/hive/simulators/common
-ADD /discovery/version4/ /go/src/github.com/ethereum/hive/simulators/discovery/version4/
+ADD /devp2p/discv4/ /go/src/github.com/ethereum/hive/simulators/devp2p/discv4/
 
 RUN (cd /go/src/github.com/ethereum/hive/simulators/ && go mod init)
 
-RUN cd /go/src/github.com/ethereum/hive/simulators && go build ./discovery/version4/
-RUN cp /go/src/github.com/ethereum/hive/simulators/version4 .
+RUN cd /go/src/github.com/ethereum/hive/simulators && go build ./devp2p/discv4/
+RUN cp /go/src/github.com/ethereum/hive/simulators/discv4 .
 RUN cd
 
 RUN git clone --depth 1 https://github.com/ethereum/go-ethereum.git
