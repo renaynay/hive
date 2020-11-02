@@ -6,7 +6,6 @@ import (
 	"os/exec"
 
 	"github.com/ethereum/hive/simulators/common"
-
 	"github.com/ethereum/hive/simulators/common/providers/hive"
 )
 
