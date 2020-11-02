@@ -1,4 +1,4 @@
-# This simulation runs various discoveryv4 tests
+# This simulation runs various discovery v4 tests
 FROM golang:1.15-alpine as builder
 RUN apk add --no-cache git make gcc musl-dev linux-headers bash  curl jq
 
