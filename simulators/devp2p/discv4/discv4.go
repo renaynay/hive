@@ -73,8 +73,7 @@ func main() {
 			fatalf("error getting node peer-to-peer endpoint: %v", err)
 		}
 		// create a separate network to be able to send the client traffic from two separate IP addrs
-		networkID, err := host.CreateNetwork(suiteID, "network1")
-		if err != nil {
+		if err := host.CreateNetwork(suiteID, "network1"); err != nil {
 			endTest(&common.TestResult{
 				Pass:    false,
 				Details: err.Error(),
@@ -82,7 +81,7 @@ func main() {
 			fatalf("could not create network: %v", err)
 		}
 		// connect both simulation and client to this network
-		err = host.ConnectContainer(suiteID, networkID, clientID)
+		err = host.ConnectContainer(suiteID, "network1", clientID)
 		if err != nil {
 			endTest(&common.TestResult{
 				Pass:    false,
@@ -90,7 +89,7 @@ func main() {
 			})
 			fatalf("could not connect container to network: %v", err)
 		}
-		err = host.ConnectContainer(suiteID, networkID, "simulation")
+		err = host.ConnectContainer(suiteID, "network1", "simulation")
 		if err != nil {
 			endTest(&common.TestResult{
 				Pass:    false,
@@ -100,7 +99,7 @@ func main() {
 		}
 		// get client IP from bridge and network1
 		simIPBridge, err := host.GetContainerNetworkIP(suiteID, "bridge", "simulation")
-		simIPNetwork1, err := host.GetContainerNetworkIP(suiteID, networkID, "simulation")
+		simIPNetwork1, err := host.GetContainerNetworkIP(suiteID, "network1", "simulation")
 		if err != nil {
 			endTest(&common.TestResult{
 				Pass:    false,
