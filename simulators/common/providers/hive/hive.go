@@ -54,8 +54,8 @@ func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string)
 }
 
 // RemoveNetwork sends a request to the hive server to remove the given network.
-func (sim *host) RemoveNetwork(testSuite common.TestSuiteID, networkID string) error {
-	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkID), nil)
+func (sim *host) RemoveNetwork(testSuite common.TestSuiteID, networkName string) error {
+	req, err := http.NewRequest(http.MethodDelete, fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkName), nil)
 	if err != nil {
 		return err
 	}
@@ -65,16 +65,16 @@ func (sim *host) RemoveNetwork(testSuite common.TestSuiteID, networkID string) e
 
 // ConnectContainer sends a request to the hive server to connect the given
 // container to the given network.
-func (sim *host) ConnectContainer(testSuite common.TestSuiteID, networkID, containerID string) error {
-	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite, networkID, containerID)
+func (sim *host) ConnectContainer(testSuite common.TestSuiteID, networkName, containerID string) error {
+	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite, networkName, containerID)
 	_, err := http.Post(endpoint, "application/json", nil)
 	return err
 }
 
 // DisconnectContainer sends a request to the hive server to disconnect the given
 // container from the given network.
-func (sim *host) DisconnectContainer(testSuite common.TestSuiteID, networkID, containerID string) error {
-	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite, networkID, containerID)
+func (sim *host) DisconnectContainer(testSuite common.TestSuiteID, networkName, containerID string) error {
+	endpoint := fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite, networkName, containerID)
 	req, err := http.NewRequest(http.MethodDelete, endpoint, nil)
 	if err != nil {
 		return err
@@ -85,8 +85,8 @@ func (sim *host) DisconnectContainer(testSuite common.TestSuiteID, networkID, co
 
 // GetContainerNetworkIP sends a request to the hive server to get the IP address
 // of the given container on the given network.
-func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkID, containerID string) (string, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite.String(), networkID, containerID))
+func (sim *host) GetContainerNetworkIP(testSuite common.TestSuiteID, networkName, containerID string) (string, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/testsuite/%s/network/%s/%s", sim.configuration.HostURI, testSuite.String(), networkName, containerID))
 	if err != nil {
 		return "", err
 	}

@@ -33,11 +33,11 @@ type TestSuiteHost interface {
 	//Returns container id, ip and mac
 	GetNode(testSuite TestSuiteID, test TestID, parameters map[string]string, initFiles map[string]string) (string, net.IP, *string, error)
 	// GetContainerNetworkIP gets the given container's IP address on the given network.
-	GetContainerNetworkIP(testSuite TestSuiteID, networkID, containerID string) (string, error)
+	GetContainerNetworkIP(testSuite TestSuiteID, networkName, containerID string) (string, error)
 	// ConnectContainer connects the given container to the given network.
-	ConnectContainer(testSuite TestSuiteID, networkID, containerID string) error
+	ConnectContainer(testSuite TestSuiteID, networkName, containerID string) error
 	// DisconnectContainer disconnects the given container from the given network.
-	DisconnectContainer(testSuite TestSuiteID, networkID, containerID string) error
+	DisconnectContainer(testSuite TestSuiteID, networkName, containerID string) error
 	// CreateNetwork creates a network by the given name.
 	CreateNetwork(testSuite TestSuiteID, networkName string) error
 	// RemoveNetwork removes a network by the given networkID.
