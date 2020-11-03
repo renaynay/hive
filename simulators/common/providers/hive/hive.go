@@ -47,19 +47,10 @@ func New() common.TestSuiteHost {
 }
 
 // CreateNetwork sends a request to the hive server to create a docker network by
-// the given name, returning its network ID
-func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string) (string, error) {
-	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkName), "application/json", nil)
-	if err != nil {
-		return "", err
-	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
+// the given name.
+func (sim *host) CreateNetwork(testSuite common.TestSuiteID, networkName string) error {
+	_, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.configuration.HostURI, testSuite.String(), networkName), "application/json", nil)
+	return err
 }
 
 // RemoveNetwork sends a request to the hive server to remove the given network.
