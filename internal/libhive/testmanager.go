@@ -160,7 +160,7 @@ func (manager *TestManager) GetNodeInfo(testSuite TestSuiteID, test TestID, node
 
 // CreateNetwork creates a docker network with the given network name, returning
 // the network ID upon success.
-func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) (string, error) {
+func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, networkName string) error {
 	_, ok := manager.IsTestSuiteRunning(testSuite)
 	if !ok {
 		return "", ErrNoSuchTestSuite
@@ -208,7 +208,7 @@ func (manager *TestManager) PruneNetworks() []error {
 }
 
 // ContainerIP gets the IP address of the given container on the given network.
-func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkID, containerID string) (string, error) {
+func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, containerID string) (string, error) {
 	manager.networkMutex.RLock()
 	defer manager.networkMutex.RUnlock()
 
