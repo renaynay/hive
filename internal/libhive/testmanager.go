@@ -238,7 +238,7 @@ func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, cont
 }
 
 // ConnectContainer connects the given container to the given network.
-func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkID, containerID string) error {
+func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkName, containerID string) error {
 	manager.networkMutex.RLock()
 	defer manager.networkMutex.RUnlock()
 
@@ -253,7 +253,7 @@ func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkID, c
 }
 
 // DisconnectContainer disconnects the given container from the given network.
-func (manager *TestManager) DisconnectContainer(testSuite TestSuiteID, networkID, containerID string) error {
+func (manager *TestManager) DisconnectContainer(testSuite TestSuiteID, networkName, containerID string) error {
 	manager.networkMutex.RLock()
 	defer manager.networkMutex.RUnlock()
 
