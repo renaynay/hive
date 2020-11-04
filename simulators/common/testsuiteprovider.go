@@ -41,7 +41,7 @@ type TestSuiteHost interface {
 	// CreateNetwork creates a network by the given name.
 	CreateNetwork(testSuite TestSuiteID, networkName string) error
 	// RemoveNetwork removes a network by the given networkID.
-	RemoveNetwork(testSuite TestSuiteID, networkID string) error
+	RemoveNetwork(testSuite TestSuiteID, networkName string) error
 	//Signal that a node is no longer required
 	KillNode(testSuite TestSuiteID, test TestID, node string) error
 }
