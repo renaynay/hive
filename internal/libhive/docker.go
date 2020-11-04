@@ -23,10 +23,8 @@ import (
 )
 
 var (
-	// client liveness check timeout
-	timeoutCheckDuration = time.Duration(60 * time.Second)
-
 	ErrNetworkNotFound = fmt.Errorf("network not found")
+	defaultStartTimeout = time.Duration(60 * time.Second)
 )
 
 // hiveEnvvarPrefix is the prefix of the environment variables names that should
@@ -65,7 +63,10 @@ func (b *dockerBackend) RunEnodeSh(containerID string) (string, error) {
 }
 
 func (b *dockerBackend) StartClient(name string, env map[string]string, files map[string]*multipart.FileHeader, checklive bool) (*ClientInfo, error) {
-	info := &ClientInfo{Name: name}
+	info := &ClientInfo{
+		Name:        name,
+		VersionInfo: b.hiveEnv.ClientVersions[name],
+	}
 
 	// Default the loglevel to the simulator log level setting.
 	logLevel := b.hiveEnv.SimLogLevel
@@ -161,7 +162,11 @@ func (b *dockerBackend) StartClient(name string, env map[string]string, files ma
 
 		time.Sleep(checkTime)
 
-		if time.Since(container.Created) > timeoutCheckDuration {
+		timeout := b.hiveEnv.ClientStartTimeout
+		if timeout == 0 {
+			timeout = defaultStartTimeout
+		}
+		if time.Since(container.Created) > timeout {
 			log15.Debug("deleting client container", "name", name, "id", info.ID)
 			err = b.client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID, Force: true})
 			if err != nil {
