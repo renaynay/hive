@@ -172,6 +172,9 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, name string) er
 	if err != nil {
 		return err
 	}
+	if _, exists := manager.networks[testSuite]; !exists {
+		manager.networks[testSuite] = make(map[string]string)
+	}
 	manager.networks[testSuite][name] = id
 	return nil
 }
