@@ -173,7 +173,14 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, name string) er
 		return err
 	}
 	if _, exists := manager.networks[testSuite]; !exists {
+		// initialize network map for individual test suite
 		manager.networks[testSuite] = make(map[string]string)
+		// add bridge network information
+		bridgeID, err := manager.backend.NetworkNameToID("bridge")
+		if err != nil {
+			return fmt.Errorf("bridge network not found, bridge network must be present for hive to run") // TODO is this ok? or panic?
+		}
+		manager.networks[testSuite]["bridge"] = bridgeID
 	}
 	manager.networks[testSuite][name] = id
 	return nil
@@ -185,7 +192,12 @@ func (manager *TestManager) RemoveNetwork(testSuite TestSuiteID, network string)
 	manager.networkMutex.Lock()
 	defer manager.networkMutex.Unlock()
 
-	if err := manager.backend.RemoveNetwork(network); err != nil {
+	id, exists := manager.networks[testSuite][network]
+	if !exists {
+		return ErrNetworkNotFound
+	}
+
+	if err := manager.backend.RemoveNetwork(id); err != nil {
 		return err
 	}
 	delete(manager.networks[testSuite], network)
@@ -199,6 +211,10 @@ func (manager *TestManager) PruneNetworks(testSuite TestSuiteID) []error {
 
 	var errs []error
 	for name, id := range manager.networks[testSuite] {
+		// do not attempt to remove bridge network
+		if name == "bridge" {
+			continue
+		}
 		log15.Info("removing docker network", "id", id, "name", name)
 		if err := manager.RemoveNetwork(testSuite, name); err != nil {
 			errs = append(errs, err)
@@ -223,7 +239,12 @@ func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, cont
 		containerID = manager.simContainerID
 	}
 
-	ipAddr, err := manager.backend.ContainerIP(containerID, networkName)
+	networkID, exists := manager.networks[testSuite][networkName]
+	if !exists {
+		return "", ErrNetworkNotFound
+	}
+
+	ipAddr, err := manager.backend.ContainerIP(containerID, networkID)
 	if err != nil {
 		return "", err
 	}
@@ -242,7 +263,12 @@ func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkName,
 	if containerID == "simulation" {
 		containerID = manager.simContainerID
 	}
-	return manager.backend.ConnectContainer(containerID, networkName)
+
+	networkID, exists := manager.networks[testSuite][networkName]
+	if !exists {
+		return ErrNetworkNotFound
+	}
+	return manager.backend.ConnectContainer(containerID, networkID)
 }
 
 // DisconnectContainer disconnects the given container from the given network.
@@ -257,7 +283,12 @@ func (manager *TestManager) DisconnectContainer(testSuite TestSuiteID, networkNa
 	if containerID == "simulation" {
 		containerID = manager.simContainerID
 	}
-	return manager.backend.DisconnectContainer(containerID, networkName)
+
+	networkID, exists := manager.networks[testSuite][networkName]
+	if !exists {
+		return ErrNetworkNotFound
+	}
+	return manager.backend.DisconnectContainer(containerID, networkID)
 }
 
 // EndTestSuite ends the test suite by writing the test suite results to the supplied

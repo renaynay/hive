@@ -220,23 +220,15 @@ func (b *dockerBackend) NetworkNameToID(name string) (string, error) {
 }
 
 // RemoveNetwork deletes a docker network.
-func (b *dockerBackend) RemoveNetwork(network string) error {
-	id, err := b.NetworkNameToID(network)
-	if err != nil {
-		return err
-	}
+func (b *dockerBackend) RemoveNetwork(id string) error {
 	return b.client.RemoveNetwork(id)
 }
 
 // ContainerIP finds the IP of a container in the given network.
-func (b *dockerBackend) ContainerIP(containerID, network string) (net.IP, error) {
+func (b *dockerBackend) ContainerIP(containerID, networkID string) (net.IP, error) {
 	details, err := b.client.InspectContainerWithOptions(docker.InspectContainerOptions{
 		ID: containerID,
 	})
-	if err != nil {
-		return nil, err
-	}
-	networkID, err := b.NetworkNameToID(network)
 	if err != nil {
 		return nil, err
 	}
@@ -250,25 +242,15 @@ func (b *dockerBackend) ContainerIP(containerID, network string) (net.IP, error)
 }
 
 // ConnectContainer connects the given container to a network.
-func (b *dockerBackend) ConnectContainer(containerID, network string) error {
-	id, err := b.NetworkNameToID(network)
-	if err != nil {
-		return err
-	}
-
-	return b.client.ConnectNetwork(id, docker.NetworkConnectionOptions{
+func (b *dockerBackend) ConnectContainer(containerID, networkID string) error {
+	return b.client.ConnectNetwork(networkID, docker.NetworkConnectionOptions{
 		Container: containerID,
 	})
 }
 
 // DisconnectContainer disconnects the given container from a network.
-func (b *dockerBackend) DisconnectContainer(containerID, network string) error {
-	id, err := b.NetworkNameToID(network)
-	if err != nil {
-		return err
-	}
-
-	return b.client.DisconnectNetwork(id, docker.NetworkConnectionOptions{
+func (b *dockerBackend) DisconnectContainer(containerID, networkID string) error {
+	return b.client.DisconnectNetwork(networkID, docker.NetworkConnectionOptions{
 		Container: containerID,
 	})
 }
