@@ -160,18 +160,12 @@ func (sim *Simulation) ClientEnodeURL(testSuite SuiteID, test TestID, node strin
 
 // CreateNetwork sends a request to the hive server to create a docker network by
 // the given name.
-func (sim *Simulation) CreateNetwork(testSuite SuiteID, networkName string) (string, error) {
-	resp, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.url, testSuite.String(), networkName), "application/json", nil)
+func (sim *Simulation) CreateNetwork(testSuite SuiteID, networkName string) error {
+	_, err := http.Post(fmt.Sprintf("%s/testsuite/%s/network/%s", sim.url, testSuite.String(), networkName), "application/json", nil)
 	if err != nil {
-		return "", err
+		return err
 	}
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	return string(body), nil
+	return err
 }
 
 // RemoveNetwork sends a request to the hive server to remove the given network.
