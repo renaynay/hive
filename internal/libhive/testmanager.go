@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path/filepath"
 	"sync"
 	"time"
@@ -168,7 +169,9 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, name string) er
 	manager.networkMutex.Lock()
 	defer manager.networkMutex.Unlock()
 
-	id, err := manager.backend.CreateNetwork(name)
+	unique := getUniqueName(testSuite, name)
+
+	id, err := manager.backend.CreateNetwork(unique)
 	if err != nil {
 		return err
 	}
@@ -182,8 +185,13 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, name string) er
 		}
 		manager.networks[testSuite]["bridge"] = bridgeID
 	}
-	manager.networks[testSuite][name] = id
+	manager.networks[testSuite][unique] = id
 	return nil
+}
+
+// getUniqueName returns a unique network name to prevent network collisions
+func getUniqueName(testSuite TestSuiteID, name string) string {
+	return fmt.Sprintf("hive_%d_%d_%s", os.Getpid(), testSuite, name)
 }
 
 // CreateNetwork creates a docker network with the given network name, returning
@@ -192,7 +200,9 @@ func (manager *TestManager) RemoveNetwork(testSuite TestSuiteID, network string)
 	manager.networkMutex.Lock()
 	defer manager.networkMutex.Unlock()
 
-	id, exists := manager.networks[testSuite][network]
+	unique := getUniqueName(testSuite, network)
+
+	id, exists := manager.networks[testSuite][unique]
 	if !exists {
 		return ErrNetworkNotFound
 	}
@@ -200,7 +210,7 @@ func (manager *TestManager) RemoveNetwork(testSuite TestSuiteID, network string)
 	if err := manager.backend.RemoveNetwork(id); err != nil {
 		return err
 	}
-	delete(manager.networks[testSuite], network)
+	delete(manager.networks[testSuite], unique)
 	return nil
 }
 
@@ -239,7 +249,7 @@ func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, cont
 		containerID = manager.simContainerID
 	}
 
-	networkID, exists := manager.networks[testSuite][networkName]
+	networkID, exists := manager.networks[testSuite][getUniqueName(testSuite, networkName)]
 	if !exists {
 		return "", ErrNetworkNotFound
 	}
@@ -264,7 +274,7 @@ func (manager *TestManager) ConnectContainer(testSuite TestSuiteID, networkName,
 		containerID = manager.simContainerID
 	}
 
-	networkID, exists := manager.networks[testSuite][networkName]
+	networkID, exists := manager.networks[testSuite][getUniqueName(testSuite, networkName)]
 	if !exists {
 		return ErrNetworkNotFound
 	}
@@ -284,7 +294,7 @@ func (manager *TestManager) DisconnectContainer(testSuite TestSuiteID, networkNa
 		containerID = manager.simContainerID
 	}
 
-	networkID, exists := manager.networks[testSuite][networkName]
+	networkID, exists := manager.networks[testSuite][getUniqueName(testSuite, networkName)]
 	if !exists {
 		return ErrNetworkNotFound
 	}
