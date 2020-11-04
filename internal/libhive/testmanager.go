@@ -201,6 +201,8 @@ func (manager *TestManager) PruneNetworks(testSuite TestSuiteID) []error {
 			errs = append(errs, err)
 		}
 	}
+	// delete the test suite from the network map as all its networks have been torn down
+	delete(manager.networks, testSuite)
 	return errs
 }
 
