@@ -184,16 +184,6 @@ func (b *dockerBackend) StopContainer(containerID string) error {
 
 // CreateNetwork creates a docker network.
 func (b *dockerBackend) CreateNetwork(name string) (string, error) {
-	existing, err := b.NetworkNameToID(name)
-	if existing != "" {
-		if err := b.client.RemoveNetwork(name); err != nil {
-			return "", err
-		}
-	}
-	if err != ErrNetworkNotFound {
-		return "", err
-	}
-	// create network
 	network, err := b.client.CreateNetwork(docker.CreateNetworkOptions{
 		Name:           name,
 		CheckDuplicate: true,
