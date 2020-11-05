@@ -250,7 +250,7 @@ func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, cont
 	// networkID "bridge" is special.
 	if networkName == "bridge" {
 		var err error
-		networkID, err = manager.backend.NetworkNameToID(networkID)
+		networkID, err = manager.backend.NetworkNameToID(networkName)
 		if err != nil {
 			return "", err
 		}
