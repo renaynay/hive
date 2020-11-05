@@ -185,12 +185,6 @@ func (manager *TestManager) CreateNetwork(testSuite TestSuiteID, name string) er
 	if _, exists := manager.networks[testSuite]; !exists {
 		// initialize network map for individual test suite
 		manager.networks[testSuite] = make(map[string]string)
-		// add bridge network information
-		bridgeID, err := manager.backend.NetworkNameToID("bridge")
-		if err != nil {
-			return fmt.Errorf("bridge network not found, bridge network must be present for hive to run") // TODO is this ok? or panic?
-		}
-		manager.networks[testSuite]["bridge"] = bridgeID
 	}
 	manager.networks[testSuite][unique] = id
 	return nil
@@ -228,10 +222,6 @@ func (manager *TestManager) PruneNetworks(testSuite TestSuiteID) []error {
 
 	var errs []error
 	for name, id := range manager.networks[testSuite] {
-		// do not attempt to remove bridge network
-		if name == "bridge" {
-			continue
-		}
 		log15.Info("removing docker network", "id", id, "name", name)
 		if err := manager.RemoveNetwork(testSuite, name); err != nil {
 			errs = append(errs, err)
@@ -256,9 +246,20 @@ func (manager *TestManager) ContainerIP(testSuite TestSuiteID, networkName, cont
 		containerID = manager.simContainerID
 	}
 
-	networkID, exists := manager.networks[testSuite][getUniqueName(testSuite, networkName)]
-	if !exists {
-		return "", ErrNetworkNotFound
+	var networkID string
+	// networkID "bridge" is special.
+	if networkName == "bridge" {
+		var err error
+		networkID, err = manager.backend.NetworkNameToID(networkID)
+		if err != nil {
+			return "", err
+		}
+	} else {
+		var exists bool
+		networkID, exists = manager.networks[testSuite][getUniqueName(testSuite, networkName)]
+		if !exists {
+			return "", ErrNetworkNotFound
+		}
 	}
 
 	ipAddr, err := manager.backend.ContainerIP(containerID, networkID)
