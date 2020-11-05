@@ -88,6 +88,7 @@ func main() {
 	if err != nil {
 		fatal("bad --docker-nocache regexp:", err)
 	}
+
 	// create hive error reporter
 	errorReport := NewHiveErrorReport()
 	//set up clients and get their versions
