@@ -143,8 +143,6 @@ func (manager *TestManager) Terminate() error {
 		}
 		// ensure the db is updated with results
 		manager.doEndSuite(suiteID)
-		// remove the test suite's left-over docker networks.
-		manager.PruneNetworks(suiteID)
 	}
 
 	return nil
@@ -337,6 +335,8 @@ func (manager *TestManager) doEndSuite(testSuite TestSuiteID) error {
 			return err
 		}
 	}
+	// remove the test suite's left-over docker networks.
+	manager.PruneNetworks(testSuite)
 	// Move the suite to results.
 	delete(manager.runningTestSuites, testSuite)
 	manager.results[testSuite] = suite
