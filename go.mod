@@ -16,7 +16,6 @@ require (
 	github.com/ethereum/go-ethereum v1.9.24
 	github.com/fsouza/go-dockerclient v1.6.6
 	github.com/golang/protobuf v1.4.3 // indirect
-	github.com/golang/snappy v0.0.2 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/mattn/go-colorable v0.1.8 // indirect
@@ -36,3 +35,5 @@ require (
 	google.golang.org/grpc v1.33.2 // indirect
 	gopkg.in/inconshreveable/log15.v2 v2.0.0-20200109203555-b30bc20e4fd1
 )
+
+replace github.com/ethereum/go-ethereum => github.com/renaynay/go-ethereum v1.9.12-0.20201207120050-1f691edb461f
