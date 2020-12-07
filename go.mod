@@ -36,4 +36,4 @@ require (
 	gopkg.in/inconshreveable/log15.v2 v2.0.0-20200109203555-b30bc20e4fd1
 )
 
-replace github.com/ethereum/go-ethereum => github.com/renaynay/go-ethereum v1.9.12-0.20201207120050-1f691edb461f
+replace github.com/ethereum/go-ethereum => github.com/renaynay/go-ethereum debug_insertChain
