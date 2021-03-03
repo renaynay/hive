@@ -88,21 +88,23 @@ func runMiner(t *hivesim.T, c *hivesim.Client) {
 	//
 	//sendTxsToMiner(t, c, gblock)
 	//// check if it's successful
-	time.Sleep(2 * time.Second)
-	params := map[string]string{
-		"from":     "0x71562b71999873db5b286df957af199ec94617f7",
-		"to":       "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
-		"gas":      "0x76c0", // 30400
-		"gasPrice": "0x1388", // 5000
-		"value":    "0x64",   // 100
-	}
+	//
+	//
+	//time.Sleep(2 * time.Second)
+	//params := map[string]string{
+	//	"from":     "0x71562b71999873db5b286df957af199ec94617f7",
+	//	"to":       "0xa94f5374fce5edbc8e2a8697c15331677e6ebf0b",
+	//	"gas":      "0x76c0", // 30400
+	//	"gasPrice": "0x1388", // 5000
+	//	"value":    "0x64",   // 100
+	//}
+	//
+	//res := new(result)
+	//if err := c.RPC().Call(res, "eth_sendTransaction", params); err != nil {
+	//	t.Fatalf("could not complete rpc call: %v", err)
+	//}
 
-	res := new(result)
-	if err := c.RPC().Call(res, "eth_sendTransaction", params); err != nil {
-		t.Fatalf("could not complete rpc call: %v", err)
-	}
-
-	time.Sleep(100 * time.Second)
+	time.Sleep(5000 * time.Second)
 	t.Sim.EndTest(t.SuiteID, t.TestID, hivesim.TestResult{})
 }
 
