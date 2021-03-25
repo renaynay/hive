@@ -188,6 +188,14 @@ func (cfg generatorConfig) generateAndSave(path string, blockModifier func(i int
 	headstate, _ := blockchain.State()
 	dump := headstate.Dump(false, false, false)
 
+	for _, block := range chain {
+		_, err := blockchain.StateAt(block.Root())
+		if err != nil {
+			return fmt.Errorf("couldnt get state at block %d: %v", block.Number(), err)
+		}
+		fmt.Println("got state at block ", block.Number())
+	}
+
 	// Write out the generated blockchain
 	if err := writeChain(blockchain, filepath.Join(path, "chain.rlp"), 1); err != nil {
 		return err
