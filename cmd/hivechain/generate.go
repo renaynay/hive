@@ -90,8 +90,8 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 	txCount := 0
 
 	var gasLimit uint64
-	if gen.Number().Uint64() > 1 {
-		gasLimit = core.CalcGasLimit(gen.PrevBlock(int(gen.Number().Int64()-1)), 0, cfg.genesis.GasLimit)
+	if gen.Number().Uint64() > 0 {
+		gasLimit = core.CalcGasLimit(gen.PrevBlock(-1), 0, cfg.genesis.GasLimit)
 	}
 	fmt.Println("GAS LIMIT: ", gasLimit)
 	var sumGas uint64
