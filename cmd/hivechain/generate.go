@@ -116,7 +116,7 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 				log.Printf("0x%x (%d gas)", tx.Hash(), tx.Gas())
 				gen.AddTx(tx)
 				txCount++
-				sumGas += tx.GasPrice().Uint64()
+				sumGas += tx.Gas()
 			}
 		}
 	}
