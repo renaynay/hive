@@ -88,7 +88,18 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 
 	txType := (i / cfg.txInterval) % txTypeMax
 	txCount := 0
+
+	gasLimit := core.CalcGasLimit(gen.PrevBlock(int(gen.Number().Int64())), 0, cfg.genesis.GasLimit)
+	fmt.Println("GAS LIMIT: ", gasLimit)
+	var sumGas uint64
+	// see what block gas limit is
+	// see if that > tx count
+	// if not, limit tx count to block gas limit
+
 	for txCount <= cfg.txCount {
+		if sumGas > gasLimit {
+			break
+		}
 		for addr, key := range knownAccounts {
 			// skip account if no allocation
 			if _, ok := cfg.genesis.Alloc[addr]; !ok {
@@ -100,6 +111,7 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 				log.Printf("0x%x (%d gas)", tx.Hash(), tx.Gas())
 				gen.AddTx(tx)
 				txCount++
+				sumGas += tx.GasPrice().Uint64()
 			}
 		}
 	}
