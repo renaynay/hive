@@ -100,17 +100,19 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 	// if not, limit tx count to block gas limit
 
 	for txCount <= cfg.txCount {
-		fmt.Println("SUM GAS: ", sumGas, "GAS LIMIT: ", gasLimit)
-		if sumGas > gasLimit {
-			fmt.Println("TERMINATING................................................................................................................................................................................................................................................................................................................................................................................................")
-			break
-		}
 		for addr, key := range knownAccounts {
 			// skip account if no allocation
 			if _, ok := cfg.genesis.Alloc[addr]; !ok {
 				continue
 			}
+
 			tx := generateTx(txType, key, &cfg.genesis, gen)
+			fmt.Println("SUM GAS: ", sumGas, "GAS LIMIT: ", gasLimit)
+			if (sumGas + tx.Cost().Uint64()) > gasLimit {
+				fmt.Println("TERMINATING................................................................................................................................................................................................................................................................................................................................................................................................")
+				break
+			}
+
 			if gen.GetBalance(addr).Cmp(tx.Cost()) > 0 {
 				log.Printf("adding tx (type %d) from %s in block %d", txType, addr.String(), gen.Number())
 				log.Printf("0x%x (%d gas)", tx.Hash(), tx.Gas())
