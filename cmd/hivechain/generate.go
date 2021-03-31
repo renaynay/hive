@@ -108,7 +108,7 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 
 			tx := generateTx(txType, key, &cfg.genesis, gen)
 			fmt.Println("SUM GAS: ", sumGas, "GAS LIMIT: ", gasLimit)
-			if (sumGas + tx.Cost().Uint64()) > gasLimit {
+			if (sumGas + tx.Gas()) > gasLimit {
 				fmt.Println("TERMINATING................................................................................................................................................................................................................................................................................................................................................................................................")
 				return
 			}
