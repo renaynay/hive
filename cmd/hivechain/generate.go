@@ -100,7 +100,7 @@ func (cfg generatorConfig) addTxForKnownAccounts(i int, gen *core.BlockGen) {
 	// if not, limit tx count to block gas limit
 
 	for txCount <= cfg.txCount {
-		fmt.Println("SUM GAS: ", sumGas)
+		fmt.Println("SUM GAS: ", sumGas, "GAS LIMIT: ", gasLimit)
 		if sumGas > gasLimit {
 			fmt.Println("TERMINATING................................................................................................................................................................................................................................................................................................................................................................................................")
 			break
