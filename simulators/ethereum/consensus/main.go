@@ -369,9 +369,7 @@ func (tc *testcase) validate() error {
 func (tc *testcase) run(t *hivesim.T) {
 	start := time.Now()
 	root, genesis, blocks, err := tc.artefacts()
-	t.Log("NAME: ", tc.name)
-	t.Log("ROOT: ", root)
-	t.Log("GENESIS: ", genesis)
+	t.Error("NAME: ", tc.name, "ROOT: ", root, "GENESIS: ", genesis)
 	if err != nil {
 		t.Fatal("can't prepare artefacts:", err)
 	}
