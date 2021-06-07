@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"gopkg.in/inconshreveable/log15.v2"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -369,7 +370,7 @@ func (tc *testcase) validate() error {
 func (tc *testcase) run(t *hivesim.T) {
 	start := time.Now()
 	root, genesis, blocks, err := tc.artefacts()
-	t.Error("NAME: ", tc.name, "ROOT: ", root, "GENESIS: ", genesis)
+	log15.Crit("NAME: ", tc.name, "ROOT: ", root, "GENESIS: ", genesis)
 	if err != nil {
 		t.Fatal("can't prepare artefacts:", err)
 	}
