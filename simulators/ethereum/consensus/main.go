@@ -445,6 +445,7 @@ func toGethGenesis(test *btJSON) *core.Genesis {
 		Mixhash:    test.Genesis.MixHash,
 		Coinbase:   test.Genesis.Coinbase,
 		Alloc:      test.Pre,
+		BaseFee: 	test.Genesis.BaseFee,
 	}
 	return genesis
 }
